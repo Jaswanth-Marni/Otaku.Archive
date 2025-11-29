@@ -1,7 +1,7 @@
 import { GoogleGenAI, Chat } from "@google/genai";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini Client Lazily
+let ai: GoogleGenAI | null = null;
 
 const SYSTEM_INSTRUCTION = `
 You are a knowledgeable anime database assistant.
@@ -19,6 +19,15 @@ export class GeminiService {
 
   private initChat() {
     try {
+      if (!process.env.API_KEY) {
+        console.warn("Gemini API Key is missing");
+        return;
+      }
+      
+      if (!ai) {
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      }
+
       this.chat = ai.chats.create({
         model: 'gemini-2.5-flash',
         config: {
