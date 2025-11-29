@@ -501,6 +501,9 @@ export default function App() {
                     >
                       {displayTitle}
                     </h1>
+                    <div className="mt-3 animate-pulse">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 border border-gray-500 px-3 py-1 rounded-full">Tap Poster</span>
+                    </div>
                  </div>
                )}
             </div>
@@ -601,6 +604,37 @@ export default function App() {
         {/* Floating Controls for Landing Page */}
         {!isDetailView && viewMode === 'SHOWCASE' && (
           <>
+            {/* Desktop Info Card (Bottom Left) */}
+            <div className="hidden md:block absolute bottom-12 left-12 z-30 w-80 bg-white dark:bg-black border-2 border-off-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] animate-slide-up">
+               <div className="flex items-center justify-between mb-3 border-b-2 border-off-black pb-2">
+                  <span className="font-condensed font-bold text-accent-red uppercase tracking-widest text-sm">
+                    {currentAnime.studios.nodes[0]?.name || "STUDIO"}
+                  </span>
+                  <span className="font-mono text-[10px] text-gray-400">#{currentAnime.id}</span>
+               </div>
+               
+               <div 
+                 className="font-sans text-xs font-medium leading-relaxed text-off-black line-clamp-3 mb-4 opacity-70 allow-select"
+                 dangerouslySetInnerHTML={{ __html: currentAnime.description }}
+               />
+
+               <div className="flex flex-wrap gap-2">
+                 {currentAnime.genres.slice(0, 3).map(genre => (
+                   <span key={genre} className="text-[10px] font-bold uppercase border border-off-black px-2 py-1 hover:bg-off-black hover:text-base-gray transition-colors cursor-default text-off-black">
+                     {genre}
+                   </span>
+                 ))}
+               </div>
+            </div>
+
+            {/* Desktop Click Indicator (Bottom Center) */}
+            <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 pointer-events-none">
+               <div className="animate-float flex flex-col items-center gap-2 opacity-50">
+                  <svg className="w-5 h-5 text-off-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                  <span className="font-condensed font-bold text-[10px] tracking-[0.3em] uppercase text-off-black">Click Poster</span>
+               </div>
+            </div>
+
             {/* Mobile Index (Bottom Left) */}
             <div className="absolute bottom-12 left-6 z-30 md:hidden pointer-events-none">
                <div className="font-display text-4xl flex items-baseline">
