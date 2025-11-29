@@ -245,12 +245,15 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
     <div className={`w-full min-h-screen pt-32 px-4 md:px-12 pb-12 bg-base-gray ${!isVisible ? 'hidden' : ''}`}>
        {/* Masonry Layout using Columns */}
       <div className="max-w-7xl mx-auto columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8 pb-12">
-        {studios.map((studio) => (
+        {studios.map((studio, index) => (
           <div 
             key={studio.id}
             onClick={() => handleStudioClick(studio)}
-            className="group break-inside-avoid relative cursor-pointer"
-            style={{ perspective: '1000px' }}
+            className="group break-inside-avoid relative cursor-pointer animate-slide-up opacity-0"
+            style={{ 
+              perspective: '1000px',
+              animationDelay: `${index * 0.1}s`
+            }}
           >
             <div 
                className="w-full bg-white dark:bg-black border-2 border-off-black p-6 transition-transform duration-100 ease-out shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-[12px_12px_0px_0px_#D00000] group-hover:-translate-y-2 group-active:translate-y-0 group-active:shadow-none mb-8"

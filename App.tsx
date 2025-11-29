@@ -60,6 +60,16 @@ export default function App() {
           setIsTransitioning(false);
         });
       } else {
+        // Closing Detail View - Capture positions if we are currently in detail view
+        // Note: We can't rely on isDetailView state here because of closure staleness
+        // But we can check if the poster element exists and is in "detail mode" (large)
+        if (posterRef.current && posterRef.current.getBoundingClientRect().width > 300) {
+           setPosterRect(posterRef.current.getBoundingClientRect());
+        }
+        if (titleRef.current) {
+           setTitleRect(titleRef.current.getBoundingClientRect());
+        }
+
         setIsDetailView(false);
         // Restore trending list if returning to showcase main
         if (state.view === 'SHOWCASE' && trendingList.length > 0) {
@@ -167,6 +177,9 @@ export default function App() {
 
   const handleCloseDetail = () => {
     triggerHaptic();
+    // Capture current positions for FLIP animation (Exit Transition)
+    if (posterRef.current) setPosterRect(posterRef.current.getBoundingClientRect());
+    if (titleRef.current) setTitleRect(titleRef.current.getBoundingClientRect());
     window.history.back();
   };
 
@@ -330,7 +343,7 @@ export default function App() {
       
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
            <div 
              onClick={handleLogoClick}
              className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isScrolled || isMenuOpen ? 'text-white dark:text-black' : ''}`}
@@ -340,7 +353,7 @@ export default function App() {
            </div>
         </div>
 
-        <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-white dark:text-black' : 'dark:text-white'}`}>
+        <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-white dark:text-black' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
           <button 
             onClick={() => handleNavClick('SHOWCASE')} 
             className={`hover:text-accent-red transition-colors ${viewMode === 'SHOWCASE' ? 'text-accent-red' : ''}`}
@@ -362,7 +375,7 @@ export default function App() {
           <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
         </div>
 
-        <div className="flex items-center gap-6 pointer-events-auto">
+        <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
           <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-white text-white hover:bg-white hover:text-black dark:border-black dark:text-black dark:hover:bg-black dark:hover:text-white' : ''}`}>LOGIN</Button>
           <MenuButton 
             isOpen={isMenuOpen} 
@@ -469,10 +482,11 @@ export default function App() {
                      rotateY(${mousePos.x * 12}deg) 
                      rotateX(${-mousePos.y * 12}deg)
                    ` : 'none',
-                   perspective: '1000px'
+                   perspective: '1000px',
+                   animationDelay: '0.2s'
                  }}
                >
-                  <div className={`w-full h-full transition-all duration-300 ${!isDetailView ? 'group-hover:scale-105' : ''}`}>
+                  <div className={`w-full h-full transition-all duration-300 ${!isDetailView ? 'group-hover:scale-105' : ''} animate-scale-up`}>
                      <div className="w-full h-full transition-all duration-300">
                         <img 
                           src={currentAnime.coverImage.extraLarge} 
@@ -553,7 +567,8 @@ export default function App() {
 
                    {/* Desktop / Showcase: Outline Font (Anton) */}
                    <h1 
-                     className={`font-display tracking-tighter uppercase break-words transition-all duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title'}`}
+                     className={`font-display tracking-tighter uppercase break-words transition-all duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title animate-slide-up'}`}
+                     style={{ animationDelay: '0.4s' }}
                    >
                      {displayTitle}
                    </h1>
@@ -605,7 +620,7 @@ export default function App() {
         {!isDetailView && viewMode === 'SHOWCASE' && (
           <>
             {/* Desktop Info Card (Bottom Left) */}
-            <div className="hidden md:block absolute bottom-12 left-12 z-30 w-80 bg-white dark:bg-black border-2 border-off-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] animate-slide-up">
+            <div className="hidden md:block absolute bottom-12 left-12 z-30 w-80 bg-white dark:bg-black border-2 border-off-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] animate-slide-up" style={{ animationDelay: '0.6s' }}>
                <div className="flex items-center justify-between mb-3 border-b-2 border-off-black pb-2">
                   <span className="font-condensed font-bold text-accent-red uppercase tracking-widest text-sm">
                     {currentAnime.studios.nodes[0]?.name || "STUDIO"}
@@ -628,7 +643,7 @@ export default function App() {
             </div>
 
             {/* Desktop Click Indicator (Bottom Center) */}
-            <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 pointer-events-none">
+            <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 pointer-events-none animate-fade-in" style={{ animationDelay: '0.8s' }}>
                <div className="animate-float flex flex-col items-center gap-2 opacity-50">
                   <svg className="w-5 h-5 text-off-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                   <span className="font-condensed font-bold text-[10px] tracking-[0.3em] uppercase text-off-black">Click Poster</span>
@@ -652,7 +667,7 @@ export default function App() {
                </div>
             </div>
 
-            <div className="absolute bottom-12 right-6 md:right-12 z-30 flex gap-4 items-center">
+            <div className="absolute bottom-12 right-6 md:right-12 z-30 flex gap-4 items-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
                <div className="font-display text-4xl text-outline text-transparent stroke-black hidden md:block" style={{ WebkitTextStroke: '1px var(--color-off-black)' }}>
                  {(currentIndex + 1).toString().padStart(2, '0')} / {animeList.length.toString().padStart(2, '0')}
                </div>
