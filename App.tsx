@@ -113,19 +113,12 @@ export default function App() {
   // Scroll Listener
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY || document.getElementById('app-wrapper')?.scrollTop || 0;
+      const scrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
       setIsScrolled(scrollPosition > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
-    // Also listen to the wrapper scroll if it's the scroll container
-    const appWrapper = document.getElementById('app-wrapper');
-    if (appWrapper) appWrapper.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (appWrapper) appWrapper.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Parallax Logic - Only active in Showcase mode
@@ -147,13 +140,13 @@ export default function App() {
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHaptic();
-    setCurrentIndex((prev) => (prev + 1) % animeList.length);
+    setCurrentIndex((prev: number) => (prev + 1) % animeList.length);
   };
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHaptic();
-    setCurrentIndex((prev) => (prev - 1 + animeList.length) % animeList.length);
+    setCurrentIndex((prev: number) => (prev - 1 + animeList.length) % animeList.length);
   };
 
   const toggleDetailView = () => {
@@ -219,7 +212,7 @@ export default function App() {
 
   const toggleTheme = () => {
     triggerHaptic();
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    setTheme((prev: 'light' | 'dark') => prev === 'light' ? 'dark' : 'light');
   };
 
   const handleAnimeSelect = async (animeId: number) => {
@@ -247,7 +240,7 @@ export default function App() {
     if (viewMode !== 'SHOWCASE' || isDetailView || animeList.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % animeList.length);
+      setCurrentIndex((prev: number) => (prev + 1) % animeList.length);
     }, 5000); // Change every 5 seconds
 
     return () => clearInterval(interval);
@@ -336,354 +329,362 @@ export default function App() {
 
   // Determine if we should lock scroll (Only lock on Showcase Landing Page)
   const isLandingPage = viewMode === 'SHOWCASE' && !isDetailView;
-  const shouldEnableScroll = !isLandingPage;
 
   return (
-    <div id="app-wrapper" className={`min-h-screen bg-base-gray text-off-black selection:bg-black selection:text-white relative font-sans transition-colors duration-700 ${shouldEnableScroll ? 'overflow-y-auto' : 'overflow-hidden h-screen'}`}>
+    <div id="app-wrapper" className="min-h-screen relative font-sans">
       
-      {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
-        <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-           <div 
-             onClick={handleLogoClick}
-             className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isScrolled || isMenuOpen ? 'text-white dark:text-black' : ''}`}
-             title="Reload"
-           >
-             OTAKU<span className="text-accent-red">.ARCHIVE</span>
-           </div>
-        </div>
-
-        <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-white dark:text-black' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
-          <button 
-            onClick={() => handleNavClick('SHOWCASE')} 
-            className={`hover:text-accent-red transition-colors ${viewMode === 'SHOWCASE' ? 'text-accent-red' : ''}`}
-          >
-            SHOWCASE
-          </button>
-          <button 
-            onClick={() => handleNavClick('EXPLORE')}
-            className={`hover:text-accent-red transition-colors ${viewMode === 'EXPLORE' ? 'text-accent-red' : ''}`}
-          >
-            EXPLORE
-          </button>
-          <button 
-             onClick={() => handleNavClick('STUDIOS')}
-             className={`hover:text-accent-red transition-colors ${viewMode === 'STUDIOS' ? 'text-accent-red' : ''}`}
-          >
-             STUDIOS
-          </button>
-          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-        </div>
-
-        <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-white text-white hover:bg-white hover:text-black dark:border-black dark:text-black dark:hover:bg-black dark:hover:text-white' : ''}`}>LOGIN</Button>
-          <MenuButton 
-            isOpen={isMenuOpen} 
-            onClick={() => setIsMenuOpen(!isMenuOpen)} 
-            className={isMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-white dark:text-black' : 'text-off-black dark:text-white')}
-          />
-        </div>
-      </nav>
-
-      <MobileMenu 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)} 
-        onNavClick={handleNavClick} 
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
-
-      {/* Transition Loader Overlay */}
-      {isTransitioning && (
-        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
-           <div className="font-display text-4xl text-white animate-pulse">LOADING...</div>
-        </div>
-      )}
-
-      {/* Back Button for Detail View */}
-      {isDetailView && viewMode === 'SHOWCASE' && (
-        <button 
-          onClick={handleCloseDetail}
-          className="fixed top-6 right-6 z-[60] text-off-black dark:text-black font-condensed font-bold uppercase tracking-widest hover:text-accent-red transition-colors animate-slide-up bg-white px-4 py-2 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
-        >
-          Close Detail [ESC]
-        </button>
-      )}
-
-      {/* Main Content Area */}
-      <main className={`relative w-full transition-all duration-700 ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
+      {/* Main Content Wrapper */}
+      <div 
+        className="relative z-10 bg-base-gray text-off-black selection:bg-black selection:text-white transition-colors duration-700 shadow-2xl"
+      >
         
-        {/* VIEW: EXPLORE */}
-        <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
+        {/* Navigation */}
+        <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
+          <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+             <div 
+               onClick={handleLogoClick}
+               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isScrolled || isMenuOpen ? 'text-white dark:text-black' : ''}`}
+               title="Reload"
+             >
+               OTAKU<span className="text-accent-red">.ARCHIVE</span>
+             </div>
+          </div>
 
-        {/* VIEW: STUDIOS */}
-        <StudiosView isVisible={viewMode === 'STUDIOS'} onAnimeSelect={handleAnimeSelect} />
+          <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-white dark:text-black' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
+            <button 
+              onClick={() => handleNavClick('SHOWCASE')} 
+              className={`hover:text-accent-red transition-colors ${viewMode === 'SHOWCASE' ? 'text-accent-red' : ''}`}
+            >
+              SHOWCASE
+            </button>
+            <button 
+              onClick={() => handleNavClick('EXPLORE')}
+              className={`hover:text-accent-red transition-colors ${viewMode === 'EXPLORE' ? 'text-accent-red' : ''}`}
+            >
+              EXPLORE
+            </button>
+            <button 
+               onClick={() => handleNavClick('STUDIOS')}
+               className={`hover:text-accent-red transition-colors ${viewMode === 'STUDIOS' ? 'text-accent-red' : ''}`}
+            >
+               STUDIOS
+            </button>
+            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+          </div>
 
-        {/* VIEW: SHOWCASE (Landing & Detail) */}
-        {viewMode === 'SHOWCASE' && (
-          <div className={`
-            relative mx-auto transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]
-            ${isDetailView 
-              ? 'w-full max-w-[95%] md:max-w-[90%] lg:max-w-7xl grid grid-cols-1 md:grid-cols-12 border-2 border-off-black bg-white dark:bg-black shadow-2xl mt-12 mb-12' 
-              : 'w-full max-w-full h-full flex items-center justify-center'
-            }
-          `}>
+          <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-white text-white hover:bg-white hover:text-black dark:border-black dark:text-black dark:hover:bg-black dark:hover:text-white' : ''}`}>LOGIN</Button>
+            <MenuButton 
+              isOpen={isMenuOpen} 
+              onClick={() => {
+                triggerHaptic();
+                setIsMenuOpen(!isMenuOpen);
+              }} 
+              className={isMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-white dark:text-black' : 'text-off-black dark:text-white')}
+            />
+          </div>
+        </nav>
 
-            {/* === HEADER STRIP (Desktop Detail Only) === */}
-            {isDetailView && (
-               <>
-                 {/* Top Left: Clients/Studio etc branding */}
-                 <div className="hidden md:flex col-span-12 border-b-2 border-off-black h-24 items-center justify-between px-8 bg-base-gray">
-                     <div className="font-condensed font-bold tracking-widest text-xs uppercase flex gap-8">
-                        <div className="flex flex-col">
-                          <span className="text-gray-500 dark:text-gray-400 mb-1">STUDIO</span>
-                          <span className="text-lg text-off-black">{currentAnime.studios.nodes[0]?.name || "N/A"}</span>
-                        </div>
-                        <div className="w-[1px] h-8 bg-gray-400"></div>
-                        <div className="flex flex-col">
-                          <span className="text-gray-500 dark:text-gray-400 mb-1">FORMAT</span>
-                          <span className="text-lg text-off-black">TV SERIES</span>
-                        </div>
-                        <div className="w-[1px] h-8 bg-gray-400"></div>
-                        <div className="flex flex-col">
-                           <span className="text-gray-500 dark:text-gray-400 mb-1">RATING</span>
-                           <span className="text-lg text-accent-red font-bold">{currentAnime.averageScore}%</span>
-                        </div>
-                     </div>
-                     <div className="font-mono text-xs text-gray-400 tracking-widest">
-                        #{currentAnime.id}
-                     </div>
-                 </div>
-               </>
-            )}
+        <MobileMenu 
+          isOpen={isMenuOpen} 
+          onClose={() => setIsMenuOpen(false)} 
+          onNavClick={handleNavClick} 
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
 
-            {/* === LEFT COLUMN: POSTER === */}
-            {/* Landing: Centered | Detail: Left Column (Col 1-5) */}
-            <div className={`
-               relative z-20 transition-all duration-700
-               ${isDetailView 
-                  ? 'col-span-1 md:col-span-6 lg:col-span-5 border-b-2 md:border-b-0 md:border-r-2 border-off-black p-8 md:p-12 flex items-center justify-center bg-base-gray' 
-                  : 'w-full h-full flex flex-col items-center justify-center pb-20 md:pb-0 absolute inset-0 pointer-events-none'
-               }
-            `}>
-               <div 
-                 ref={posterRef}
-                 onClick={!isDetailView ? toggleDetailView : undefined}
-                 className={`
-                   relative shadow-2xl bg-black overflow-hidden
-                   ${isDetailView 
-                     ? 'w-full aspect-[2/3] rotate-0 pointer-events-auto max-w-md shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]' 
-                     : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto'
-                   }
-                 `}
-                 style={{ 
-                   transform: !isDetailView ? `
-                     translate(${mousePos.x * 25}px, ${mousePos.y * 25}px) 
-                     rotateY(${mousePos.x * 12}deg) 
-                     rotateX(${-mousePos.y * 12}deg)
-                   ` : 'none',
-                   perspective: '1000px',
-                   animationDelay: '0.2s'
-                 }}
-               >
-                  <div className={`w-full h-full transition-all duration-300 ${!isDetailView ? 'group-hover:scale-105' : ''} animate-scale-up`}>
-                     <div className="w-full h-full transition-all duration-300">
-                        <img 
-                          src={currentAnime.coverImage.extraLarge} 
-                          alt={displayTitle} 
-                          className={`w-full h-full object-cover transition-all duration-700 ${
-                            isDetailView ? 'grayscale-0' : 'filter grayscale-[20%] group-hover:grayscale-0 contrast-110'
-                          }`}
-                        />
-                     </div>
-                  </div>
-
-                   {/* Tech Overlays - Hide in Detail View */}
-                   <div className={`absolute top-0 left-0 p-4 w-full flex justify-between items-start transition-opacity duration-500 ${isDetailView ? 'opacity-0' : 'opacity-100'}`}>
-                     <span className="bg-white text-black text-[10px] font-bold font-mono px-2 py-1">#{currentAnime.id}</span>
-                   </div>
-               </div>
-
-               {/* Mobile Landing Page Title */}
-               {!isDetailView && (
-                 <div 
-                   className="md:hidden mt-6 text-center px-4 pointer-events-auto"
-                 >
-                    <h1 
-                      ref={isMobile ? titleRef : undefined}
-                      className="font-display text-3xl uppercase tracking-tighter text-off-black leading-none"
-                    >
-                      {displayTitle}
-                    </h1>
-                    <div className="mt-3 animate-pulse">
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 border border-gray-500 px-3 py-1 rounded-full">Tap Poster</span>
-                    </div>
-                 </div>
-               )}
-            </div>
-
-            {/* === RIGHT COLUMN: CONTENT === */}
-            {/* Landing: Full Screen Background | Detail: Right Column (Col 6-12) */}
-            <div className={`
-               transition-all duration-700
-               ${isDetailView 
-                 ? 'col-span-1 md:col-span-6 lg:col-span-7 flex flex-col' 
-                 : 'absolute inset-0 z-0 flex items-center justify-center pointer-events-none'
-               }
-            `}>
-              
-              {/* --- TITLE SECTION --- */}
-              <div 
-                ref={!isMobile ? titleRef : undefined}
-                className={`
-                  transition-all duration-700 flex flex-col justify-center
-                  ${isDetailView 
-                    ? 'p-8 md:p-12 border-b-2 border-off-black bg-white dark:bg-black min-h-[300px]' 
-                    : 'w-full h-full items-center text-center'
-                  }
-                `}
-                style={{ 
-                   transform: !isDetailView ? `translate(${mousePos.x * -15}px, ${mousePos.y * -15}px)` : 'none'
-                }}
-              >
-                 {/* Native Title */}
-                 <div className={`font-black select-none text-off-black transition-all duration-700 ${
-                   isDetailView 
-                    ? 'text-sm opacity-60 mb-2 font-mono tracking-widest' 
-                    : 'hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[min(5vw,10vh)] opacity-[0.04] w-full text-center px-4'
-                 }`}>
-                    {currentAnime.title.native || "アニメ"}
-                 </div>
-
-                 {/* Main Title */}
-                 <div className={`${isDetailView ? 'relative' : 'px-4 max-w-[90vw]'}`}>
-                   {/* Mobile Detail: Solid Font */}
-                   <h1 
-                     ref={(isMobile && isDetailView) ? titleRef : undefined}
-                     className={`md:hidden font-display tracking-tighter uppercase text-off-black break-words transition-all duration-700 ${titleClass} ${!isDetailView ? 'hidden' : 'block'}`}
-                   >
-                     {displayTitle}
-                   </h1>
-
-                   {/* Desktop / Showcase: Outline Font (Anton) */}
-                   <h1 
-                     className={`font-display tracking-tighter uppercase break-words transition-all duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title animate-slide-up'}`}
-                     style={{ animationDelay: '0.4s' }}
-                   >
-                     {displayTitle}
-                   </h1>
-                 </div>
-              </div>
-
-              {/* --- SYNOPSIS SECTION (Detail Only) --- */}
-              {isDetailView && (
-                <div className="flex-1 p-8 md:p-12 bg-gray-50 dark:bg-[#1a1a1a] animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-8 h-8 rounded-full border border-black dark:border-white flex items-center justify-center">
-                         <div className="w-2 h-2 bg-accent-red rounded-full animate-pulse"></div>
-                      </div>
-                      <h3 className="font-condensed font-bold text-xl uppercase tracking-widest text-off-black">Synopsis</h3>
-                    </div>
-
-                    <div 
-                      className="font-sans text-off-black font-light leading-relaxed text-lg text-justify opacity-80 allow-select"
-                      dangerouslySetInnerHTML={{ __html: currentAnime.description }}
-                    />
-
-                    {/* Footer Stats for Mobile (since header strip is hidden on mobile) */}
-                    <div className="md:hidden mt-8 pt-8 border-t border-gray-300 dark:border-gray-700 grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-1">Studio</span>
-                          <span className="font-condensed font-bold text-lg text-off-black">{currentAnime.studios.nodes[0]?.name}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-1">Rating</span>
-                          <span className="font-condensed font-bold text-lg text-accent-red">{currentAnime.averageScore}%</span>
-                        </div>
-                    </div>
-                    
-                    <div className="mt-8 flex flex-wrap gap-2">
-                      {currentAnime.genres.map(g => (
-                        <span key={g} className="border border-black dark:border-white px-3 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors cursor-default text-off-black">
-                          {g}
-                        </span>
-                      ))}
-                    </div>
-                </div>
-              )}
-            </div>
-
+        {/* Transition Loader Overlay */}
+        {isTransitioning && (
+          <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+             <div className="font-display text-4xl text-white animate-pulse">LOADING...</div>
           </div>
         )}
 
-        {/* Floating Controls for Landing Page */}
-        {!isDetailView && viewMode === 'SHOWCASE' && (
-          <>
-            {/* Desktop Info Card (Bottom Left) */}
-            <div className="hidden md:block absolute bottom-12 left-12 z-30 w-80 bg-white dark:bg-black border-2 border-off-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] animate-slide-up" style={{ animationDelay: '0.6s' }}>
-               <div className="flex items-center justify-between mb-3 border-b-2 border-off-black pb-2">
-                  <span className="font-condensed font-bold text-accent-red uppercase tracking-widest text-sm">
-                    {currentAnime.studios.nodes[0]?.name || "STUDIO"}
-                  </span>
-                  <span className="font-mono text-[10px] text-gray-400">#{currentAnime.id}</span>
-               </div>
-               
-               <div 
-                 className="font-sans text-xs font-medium leading-relaxed text-off-black line-clamp-3 mb-4 opacity-70 allow-select"
-                 dangerouslySetInnerHTML={{ __html: currentAnime.description }}
-               />
-
-               <div className="flex flex-wrap gap-2">
-                 {currentAnime.genres.slice(0, 3).map(genre => (
-                   <span key={genre} className="text-[10px] font-bold uppercase border border-off-black px-2 py-1 hover:bg-off-black hover:text-base-gray transition-colors cursor-default text-off-black">
-                     {genre}
-                   </span>
-                 ))}
-               </div>
-            </div>
-
-            {/* Desktop Click Indicator (Bottom Center) */}
-            <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 pointer-events-none animate-fade-in" style={{ animationDelay: '0.8s' }}>
-               <div className="animate-float flex flex-col items-center gap-2 opacity-50">
-                  <svg className="w-5 h-5 text-off-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                  <span className="font-condensed font-bold text-[10px] tracking-[0.3em] uppercase text-off-black">Click Poster</span>
-               </div>
-            </div>
-
-            {/* Mobile Index (Bottom Left) */}
-            <div className="absolute bottom-12 left-6 z-30 md:hidden pointer-events-none">
-               <div className="font-display text-4xl flex items-baseline">
-                 <span 
-                   className="text-transparent transition-colors duration-300"
-                   style={{ 
-                     WebkitTextStroke: (currentIndex + 1) === 10 ? '1px #D00000' : '1px var(--color-off-black)' 
-                   }}
-                 >
-                   {(currentIndex + 1).toString().padStart(2, '0')}
-                 </span>
-                 <span className="text-xl text-off-black opacity-50 ml-1">
-                   / {animeList.length.toString().padStart(2, '0')}
-                 </span>
-               </div>
-            </div>
-
-            <div className="absolute bottom-12 right-6 md:right-12 z-30 flex gap-4 items-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
-               <div className="font-display text-4xl text-outline text-transparent stroke-black hidden md:block" style={{ WebkitTextStroke: '1px var(--color-off-black)' }}>
-                 {(currentIndex + 1).toString().padStart(2, '0')} / {animeList.length.toString().padStart(2, '0')}
-               </div>
-               <div className="flex gap-2">
-                 <button onClick={handlePrev} className="w-14 h-14 border-2 border-off-black dark:border-white flex items-center justify-center hover:bg-off-black hover:text-base-gray dark:hover:bg-white dark:hover:text-black transition-all active:scale-95 text-off-black dark:text-white">
-                   ←
-                 </button>
-                 <button onClick={handleNext} className="w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center hover:bg-accent-red dark:hover:bg-accent-red dark:hover:text-white transition-all active:scale-95 shadow-lg">
-                   →
-                 </button>
-               </div>
-            </div>
-          </>
+        {/* Back Button for Detail View */}
+        {isDetailView && viewMode === 'SHOWCASE' && (
+          <button 
+            onClick={handleCloseDetail}
+            className="fixed top-6 right-6 z-[60] text-off-black dark:text-black font-condensed font-bold uppercase tracking-widest hover:text-accent-red transition-colors animate-slide-up bg-white px-4 py-2 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          >
+            Close Detail [ESC]
+          </button>
         )}
 
-      </main>
+        {/* Main Content Area */}
+        <main className={`relative w-full transition-all duration-700 ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
+          
+          {/* VIEW: EXPLORE */}
+          <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
+
+          {/* VIEW: STUDIOS */}
+          <StudiosView isVisible={viewMode === 'STUDIOS'} onAnimeSelect={handleAnimeSelect} />
+
+          {/* VIEW: SHOWCASE (Landing & Detail) */}
+          {viewMode === 'SHOWCASE' && (
+            <div className={`
+              relative mx-auto transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]
+              ${isDetailView 
+                ? 'w-full max-w-[95%] md:max-w-[90%] lg:max-w-7xl grid grid-cols-1 md:grid-cols-12 border-2 border-off-black bg-white dark:bg-black shadow-2xl mt-12 mb-12' 
+                : 'w-full max-w-full h-full flex items-center justify-center'
+              }
+            `}>
+
+              {/* === HEADER STRIP (Desktop Detail Only) === */}
+              {isDetailView && (
+                 <>
+                   {/* Top Left: Clients/Studio etc branding */}
+                   <div className="hidden md:flex col-span-12 border-b-2 border-off-black h-24 items-center justify-between px-8 bg-base-gray">
+                       <div className="font-condensed font-bold tracking-widest text-xs uppercase flex gap-8">
+                          <div className="flex flex-col">
+                            <span className="text-gray-500 dark:text-gray-400 mb-1">STUDIO</span>
+                            <span className="text-lg text-off-black">{currentAnime.studios.nodes[0]?.name || "N/A"}</span>
+                          </div>
+                          <div className="w-[1px] h-8 bg-gray-400"></div>
+                          <div className="flex flex-col">
+                            <span className="text-gray-500 dark:text-gray-400 mb-1">FORMAT</span>
+                            <span className="text-lg text-off-black">TV SERIES</span>
+                          </div>
+                          <div className="w-[1px] h-8 bg-gray-400"></div>
+                          <div className="flex flex-col">
+                             <span className="text-gray-500 dark:text-gray-400 mb-1">RATING</span>
+                             <span className="text-lg text-accent-red font-bold">{currentAnime.averageScore}%</span>
+                          </div>
+                       </div>
+                       <div className="font-mono text-xs text-gray-400 tracking-widest">
+                          #{currentAnime.id}
+                       </div>
+                   </div>
+                 </>
+              )}
+
+              {/* === LEFT COLUMN: POSTER === */}
+              {/* Landing: Centered | Detail: Left Column (Col 1-5) */}
+              <div className={`
+                 relative z-20 transition-all duration-700
+                 ${isDetailView 
+                    ? 'col-span-1 md:col-span-6 lg:col-span-5 border-b-2 md:border-b-0 md:border-r-2 border-off-black p-8 md:p-12 flex items-center justify-center bg-base-gray' 
+                    : 'w-full h-full flex flex-col items-center justify-center pb-20 md:pb-0 absolute inset-0 pointer-events-none'
+                 }
+              `}>
+                 <div 
+                   ref={posterRef}
+                   onClick={!isDetailView ? toggleDetailView : undefined}
+                   className={`
+                     relative shadow-2xl bg-black overflow-hidden
+                     ${isDetailView 
+                       ? 'w-full aspect-[2/3] rotate-0 pointer-events-auto max-w-md shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]' 
+                       : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto'
+                     }
+                   `}
+                   style={{ 
+                     transform: !isDetailView ? `
+                       translate(${mousePos.x * 25}px, ${mousePos.y * 25}px) 
+                       rotateY(${mousePos.x * 12}deg) 
+                       rotateX(${-mousePos.y * 12}deg)
+                     ` : 'none',
+                     perspective: '1000px',
+                     animationDelay: '0.2s'
+                   }}
+                 >
+                    <div className={`w-full h-full transition-all duration-300 ${!isDetailView ? 'group-hover:scale-105' : ''} animate-scale-up`}>
+                       <div className="w-full h-full transition-all duration-300">
+                          <img 
+                            src={currentAnime.coverImage.extraLarge} 
+                            alt={displayTitle} 
+                            className={`w-full h-full object-cover transition-all duration-700 ${
+                              isDetailView ? 'grayscale-0' : 'filter grayscale-[20%] group-hover:grayscale-0 contrast-110'
+                            }`}
+                          />
+                       </div>
+                    </div>
+
+                     {/* Tech Overlays - Hide in Detail View */}
+                     <div className={`absolute top-0 left-0 p-4 w-full flex justify-between items-start transition-opacity duration-500 ${isDetailView ? 'opacity-0' : 'opacity-100'}`}>
+                       <span className="bg-white text-black text-[10px] font-bold font-mono px-2 py-1">#{currentAnime.id}</span>
+                     </div>
+                 </div>
+
+                 {/* Mobile Landing Page Title */}
+                 {!isDetailView && (
+                   <div 
+                     className="md:hidden mt-6 text-center px-4 pointer-events-auto"
+                   >
+                      <h1 
+                        ref={isMobile ? titleRef : undefined}
+                        className="font-display text-3xl uppercase tracking-tighter text-off-black leading-none"
+                      >
+                        {displayTitle}
+                      </h1>
+                      <div className="mt-3 animate-pulse">
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 border border-gray-500 px-3 py-1 rounded-full">Tap Poster</span>
+                      </div>
+                   </div>
+                 )}
+              </div>
+
+              {/* === RIGHT COLUMN: CONTENT === */}
+              {/* Landing: Full Screen Background | Detail: Right Column (Col 6-12) */}
+              <div className={`
+                 transition-all duration-700
+                 ${isDetailView 
+                   ? 'col-span-1 md:col-span-6 lg:col-span-7 flex flex-col' 
+                   : 'absolute inset-0 z-0 flex items-center justify-center pointer-events-none'
+                 }
+              `}>
+                
+                {/* --- TITLE SECTION --- */}
+                <div 
+                  ref={!isMobile ? titleRef : undefined}
+                  className={`
+                    transition-all duration-700 flex flex-col justify-center
+                    ${isDetailView 
+                      ? 'p-8 md:p-12 border-b-2 border-off-black bg-white dark:bg-black min-h-[300px]' 
+                      : 'w-full h-full items-center text-center'
+                    }
+                  `}
+                  style={{ 
+                     transform: !isDetailView ? `translate(${mousePos.x * -15}px, ${mousePos.y * -15}px)` : 'none'
+                  }}
+                >
+                   {/* Native Title */}
+                   <div className={`font-black select-none text-off-black transition-all duration-700 ${
+                     isDetailView 
+                      ? 'text-sm opacity-60 mb-2 font-mono tracking-widest' 
+                      : 'hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[min(5vw,10vh)] opacity-[0.04] w-full text-center px-4'
+                   }`}>
+                      {currentAnime.title.native || "アニメ"}
+                   </div>
+
+                   {/* Main Title */}
+                   <div className={`${isDetailView ? 'relative' : 'px-4 max-w-[90vw]'}`}>
+                     {/* Mobile Detail: Solid Font */}
+                     <h1 
+                       ref={(isMobile && isDetailView) ? titleRef : undefined}
+                       className={`md:hidden font-display tracking-tighter uppercase text-off-black break-words transition-all duration-700 ${titleClass} ${!isDetailView ? 'hidden' : 'block'}`}
+                     >
+                       {displayTitle}
+                     </h1>
+
+                     {/* Desktop / Showcase: Outline Font (Anton) */}
+                     <h1 
+                       className={`font-display tracking-tighter uppercase break-words transition-all duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title animate-slide-up'}`}
+                       style={{ animationDelay: '0.4s' }}
+                     >
+                       {displayTitle}
+                     </h1>
+                   </div>
+                </div>
+
+                {/* --- SYNOPSIS SECTION (Detail Only) --- */}
+                {isDetailView && (
+                  <div className="flex-1 p-8 md:p-12 bg-gray-50 dark:bg-[#1a1a1a] animate-slide-up" style={{ animationDelay: '0.4s' }}>
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-8 h-8 rounded-full border border-black dark:border-white flex items-center justify-center">
+                           <div className="w-2 h-2 bg-accent-red rounded-full animate-pulse"></div>
+                        </div>
+                        <h3 className="font-condensed font-bold text-xl uppercase tracking-widest text-off-black">Synopsis</h3>
+                      </div>
+
+                      <div 
+                        className="font-sans text-off-black font-light leading-relaxed text-lg text-justify opacity-80 allow-select"
+                        dangerouslySetInnerHTML={{ __html: currentAnime.description }}
+                      />
+
+                      {/* Footer Stats for Mobile (since header strip is hidden on mobile) */}
+                      <div className="md:hidden mt-8 pt-8 border-t border-gray-300 dark:border-gray-700 grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-1">Studio</span>
+                            <span className="font-condensed font-bold text-lg text-off-black">{currentAnime.studios.nodes[0]?.name}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-1">Rating</span>
+                            <span className="font-condensed font-bold text-lg text-accent-red">{currentAnime.averageScore}%</span>
+                          </div>
+                      </div>
+                      
+                      <div className="mt-8 flex flex-wrap gap-2">
+                        {currentAnime.genres.map(g => (
+                          <span key={g} className="border border-black dark:border-white px-3 py-1 text-xs font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors cursor-default text-off-black">
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* Floating Controls for Landing Page */}
+          {!isDetailView && viewMode === 'SHOWCASE' && (
+            <>
+              {/* Desktop Info Card (Bottom Left) */}
+              <div className="hidden md:block absolute bottom-12 left-12 z-30 w-80 bg-white dark:bg-black border-2 border-off-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] animate-slide-up" style={{ animationDelay: '0.6s' }}>
+                 <div className="flex items-center justify-between mb-3 border-b-2 border-off-black pb-2">
+                    <span className="font-condensed font-bold text-accent-red uppercase tracking-widest text-sm">
+                      {currentAnime.studios.nodes[0]?.name || "STUDIO"}
+                    </span>
+                    <span className="font-mono text-[10px] text-gray-400">#{currentAnime.id}</span>
+                 </div>
+                 
+                 <div 
+                   className="font-sans text-xs font-medium leading-relaxed text-off-black line-clamp-3 mb-4 opacity-70 allow-select"
+                   dangerouslySetInnerHTML={{ __html: currentAnime.description }}
+                 />
+
+                 <div className="flex flex-wrap gap-2">
+                   {currentAnime.genres.slice(0, 3).map(genre => (
+                     <span key={genre} className="text-[10px] font-bold uppercase border border-off-black px-2 py-1 hover:bg-off-black hover:text-base-gray transition-colors cursor-default text-off-black">
+                       {genre}
+                     </span>
+                   ))}
+                 </div>
+              </div>
+
+              {/* Desktop Click Indicator (Bottom Center) */}
+              <div className="hidden md:flex absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 pointer-events-none animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                 <div className="animate-float flex flex-col items-center gap-2 opacity-50">
+                    <svg className="w-5 h-5 text-off-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                    <span className="font-condensed font-bold text-[10px] tracking-[0.3em] uppercase text-off-black">Click Poster</span>
+                 </div>
+              </div>
+
+              {/* Mobile Index (Bottom Left) */}
+              <div className="absolute bottom-12 left-6 z-30 md:hidden pointer-events-none">
+                 <div className="font-display text-4xl flex items-baseline">
+                   <span 
+                     className="text-transparent transition-colors duration-300"
+                     style={{ 
+                       WebkitTextStroke: (currentIndex + 1) === 10 ? '1px #D00000' : '1px var(--color-off-black)' 
+                     }}
+                   >
+                     {(currentIndex + 1).toString().padStart(2, '0')}
+                   </span>
+                   <span className="text-xl text-off-black opacity-50 ml-1">
+                     / {animeList.length.toString().padStart(2, '0')}
+                   </span>
+                 </div>
+              </div>
+
+              <div className="absolute bottom-12 right-6 md:right-12 z-30 flex gap-4 items-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
+                 <div className="font-display text-4xl text-outline text-transparent stroke-black hidden md:block" style={{ WebkitTextStroke: '1px var(--color-off-black)' }}>
+                   {(currentIndex + 1).toString().padStart(2, '0')} / {animeList.length.toString().padStart(2, '0')}
+                 </div>
+                 <div className="flex gap-2">
+                   <button onClick={handlePrev} className="w-14 h-14 border-2 border-off-black dark:border-white flex items-center justify-center hover:bg-off-black hover:text-base-gray dark:hover:bg-white dark:hover:text-black transition-all active:scale-95 text-off-black dark:text-white">
+                     ←
+                   </button>
+                   <button onClick={handleNext} className="w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center hover:bg-accent-red dark:hover:bg-accent-red dark:hover:text-white transition-all active:scale-95 shadow-lg">
+                     →
+                   </button>
+                 </div>
+              </div>
+            </>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }
