@@ -68,7 +68,7 @@ export const ChatWidget: React.FC = () => {
                     ? 'bg-black text-white' 
                     : 'bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'
                 }`}>
-                  <p className="leading-tight">{msg.text}</p>
+                  <p className="leading-tight allow-select">{msg.text}</p>
                 </div>
               </div>
             ))}
@@ -82,7 +82,7 @@ export const ChatWidget: React.FC = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask a question..."
-              className="flex-1 bg-gray-100 border-b-2 border-gray-300 focus:border-black px-4 py-2 text-sm focus:outline-none transition-colors font-mono"
+              className="flex-1 bg-gray-100 border-b-2 border-gray-300 focus:border-black px-4 py-2 text-sm focus:outline-none transition-colors font-mono allow-select"
             />
             <button 
               type="submit"

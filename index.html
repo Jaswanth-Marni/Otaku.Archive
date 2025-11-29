@@ -58,19 +58,27 @@
 
       /* Hide scrollbar for clean UI */
       ::-webkit-scrollbar {
-        width: 8px;
+        display: none;
       }
-      ::-webkit-scrollbar-track {
-        background: var(--color-base-gray);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--color-off-black);
+      * {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
       }
       body {
         background-color: var(--color-base-gray);
         color: var(--color-off-black);
         overflow-x: hidden;
         transition: background-color 0.5s ease, color 0.5s ease;
+        cursor: default;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* Allow text selection where explicitly needed */
+      .allow-select {
+        user-select: text;
+        -webkit-user-select: text;
+        cursor: text;
       }
 
       /* Landing Page Title Hover Effect */
@@ -83,6 +91,24 @@
         -webkit-text-stroke: 2px #D00000;
         transform: scale(1.05);
         transition: transform 0.3s ease-out, -webkit-text-stroke 0.3s ease-out !important;
+      }
+
+      /* 3D Flip Animation Utilities */
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
+      .group:hover .group-hover\:rotate-y-180 {
+        transform: rotateY(180deg);
       }
     </style>
 </head>

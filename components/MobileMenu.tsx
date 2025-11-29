@@ -3,7 +3,7 @@ import React from 'react';
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavClick: (mode: 'SHOWCASE' | 'STUDIOS') => void;
+  onNavClick: (mode: 'SHOWCASE' | 'STUDIOS' | 'EXPLORE') => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
 }
@@ -20,8 +20,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onNavCl
         >
           SHOWCASE
         </button>
-        <button className="hover:text-accent-red transition-colors opacity-50">TOP RATED</button>
-        <button className="hover:text-accent-red transition-colors opacity-50">GENRES</button>
+        <button 
+          onClick={() => { onNavClick('EXPLORE'); onClose(); }}
+          className="hover:text-accent-red transition-colors"
+        >
+          EXPLORE
+        </button>
         <button 
           onClick={() => { onNavClick('STUDIOS'); onClose(); }}
           className="hover:text-accent-red transition-colors"

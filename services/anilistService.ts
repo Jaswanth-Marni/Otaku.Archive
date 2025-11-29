@@ -66,6 +66,128 @@ query ($page: Int, $perPage: Int) {
 }
 `;
 
+const POPULAR_QUERY = `
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(sort: POPULARITY_DESC, type: ANIME) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
+const FAVORITE_QUERY = `
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(sort: FAVOURITES_DESC, type: ANIME) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
+const SEARCH_QUERY = `
+query ($search: String, $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(search: $search, type: ANIME, sort: POPULARITY_DESC) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
+const GENRE_QUERY = `
+query {
+  GenreCollection
+  Page(page: 1, perPage: 50) {
+    media(sort: POPULARITY_DESC, type: ANIME) {
+      coverImage {
+        extraLarge
+      }
+      genres
+    }
+  }
+}
+`;
+
+const GENRE_SEARCH_QUERY = `
+query ($genre: String, $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(genre: $genre, type: ANIME, sort: POPULARITY_DESC) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
 const STUDIO_QUERY = `
 query {
   Page(page: 1, perPage: 20) {
@@ -187,6 +309,125 @@ export const fetchTrendingAnime = async (page = 1, perPage = 10): Promise<AnimeD
       body: JSON.stringify({
         query: ANIME_QUERY,
         variables: { page, perPage },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const fetchPopularAnime = async (page = 1, perPage = 10): Promise<AnimeData[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: POPULAR_QUERY,
+        variables: { page, perPage },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const fetchAllTimeFavorites = async (page = 1, perPage = 10): Promise<AnimeData[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: FAVORITE_QUERY,
+        variables: { page, perPage },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const searchAnime = async (search: string, page = 1, perPage = 10): Promise<AnimeData[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: SEARCH_QUERY,
+        variables: { search, page, perPage },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const fetchGenresWithImages = async (): Promise<{ name: string; image: string }[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: GENRE_QUERY,
+      }),
+    });
+
+    const data = await response.json();
+    const genres: string[] = data.data?.GenreCollection || [];
+    const media: any[] = data.data?.Page?.media || [];
+
+    // Map genres to an image from the popular media list
+    return genres.map(genre => {
+      const matchingAnime = media.find(m => m.genres.includes(genre));
+      return {
+        name: genre,
+        image: matchingAnime?.coverImage?.extraLarge || "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127230-FlochcFsqoO4.png" // Fallback
+      };
+    }).filter(g => g.name !== 'Hentai'); // Filter out NSFW if desired, or keep it. Usually safer to filter.
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const fetchAnimeByGenre = async (genre: string, page = 1, perPage = 10): Promise<AnimeData[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: GENRE_SEARCH_QUERY,
+        variables: { genre, page, perPage },
       }),
     });
 

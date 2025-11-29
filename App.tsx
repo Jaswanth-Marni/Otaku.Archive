@@ -5,8 +5,10 @@ import { MobileMenu } from './components/MobileMenu';
 import { ThemeToggle } from './components/ThemeToggle';
 import { fetchTrendingAnime, fetchAnimeDetails, AnimeData } from './services/anilistService';
 import { StudiosView } from './components/StudiosView';
+import { ExploreView } from './components/ExploreView';
+import { triggerHaptic } from './utils/haptics';
 
-type ViewMode = 'SHOWCASE' | 'STUDIOS';
+type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE';
 
 export default function App() {
   const [animeList, setAnimeList] = useState<AnimeData[]>([]);
@@ -17,7 +19,7 @@ export default function App() {
   const [isDetailView, setIsDetailView] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('SHOWCASE');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [returnToStudios, setReturnToStudios] = useState(false);
+  const [previousView, setPreviousView] = useState<ViewMode | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -28,6 +30,51 @@ export default function App() {
   const titleRef = useRef<HTMLDivElement>(null);
   const [posterRect, setPosterRect] = useState<DOMRect | null>(null);
   const [titleRect, setTitleRect] = useState<DOMRect | null>(null);
+
+  // Handle Browser Back Button
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (!state) {
+        // Default to initial state if no state exists
+        setViewMode('SHOWCASE');
+        setIsDetailView(false);
+        setAnimeList(trendingList);
+        return;
+      }
+
+      // Handle View Mode
+      if (state.view) {
+        setViewMode(state.view);
+      }
+
+      // Handle Detail View
+      if (state.animeId) {
+        setIsDetailView(true);
+        setIsTransitioning(true);
+        fetchAnimeDetails(state.animeId).then(anime => {
+          if (anime) {
+            setAnimeList([anime]);
+            setCurrentIndex(0);
+          }
+          setIsTransitioning(false);
+        });
+      } else {
+        setIsDetailView(false);
+        // Restore trending list if returning to showcase main
+        if (state.view === 'SHOWCASE' && trendingList.length > 0) {
+           setAnimeList(trendingList);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // Set initial state
+    window.history.replaceState({ view: 'SHOWCASE' }, '', window.location.pathname);
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [trendingList]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -89,43 +136,42 @@ export default function App() {
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerHaptic();
     setCurrentIndex((prev) => (prev + 1) % animeList.length);
   };
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
+    triggerHaptic();
     setCurrentIndex((prev) => (prev - 1 + animeList.length) % animeList.length);
   };
 
   const toggleDetailView = () => {
+    triggerHaptic();
     // 1. FIRST (Capture current positions)
     if (posterRef.current) setPosterRect(posterRef.current.getBoundingClientRect());
     if (titleRef.current) setTitleRect(titleRef.current.getBoundingClientRect());
 
     // 2. STATE CHANGE
-    setIsDetailView(!isDetailView);
-
     if (!isDetailView) {
-      setMousePos({ x: 0, y: 0 });
+       // Opening Detail View -> Push State
+       const animeId = animeList[currentIndex].id;
+       window.history.pushState({ view: 'SHOWCASE', animeId }, '', `?anime=${animeId}`);
+       setIsDetailView(true);
+       setMousePos({ x: 0, y: 0 });
+    } else {
+       // Closing Detail View -> Go Back
+       window.history.back();
     }
   };
 
   const handleCloseDetail = () => {
-    // Capture current positions for FLIP animation (Exit Transition)
-    if (posterRef.current) setPosterRect(posterRef.current.getBoundingClientRect());
-    if (titleRef.current) setTitleRect(titleRef.current.getBoundingClientRect());
-
-    setIsDetailView(false);
-    if (returnToStudios) {
-      setViewMode('STUDIOS');
-      setReturnToStudios(false);
-      // Restore trending list for next time we visit showcase
-      setAnimeList(trendingList); 
-      setCurrentIndex(0);
-    }
+    triggerHaptic();
+    window.history.back();
   };
 
   const handleLogoClick = () => {
+    triggerHaptic();
     // Smoothly fade out the app wrapper before reloading
     const appWrapper = document.getElementById('app-wrapper');
     if (appWrapper) {
@@ -140,15 +186,18 @@ export default function App() {
   };
 
   const handleNavClick = (mode: ViewMode) => {
+    triggerHaptic();
     if (mode === viewMode) return;
     
+    window.history.pushState({ view: mode }, '', `?view=${mode.toLowerCase()}`);
+
     if (mode === 'SHOWCASE') {
         // Ensure we restore the trending list if we were inspecting something else
         if (animeList !== trendingList) {
             setAnimeList(trendingList);
             setCurrentIndex(0);
         }
-        setReturnToStudios(false);
+        setPreviousView(null);
     }
 
     setIsDetailView(false); // Close detail view if open
@@ -156,18 +205,24 @@ export default function App() {
   };
 
   const toggleTheme = () => {
+    triggerHaptic();
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   const handleAnimeSelect = async (animeId: number) => {
+    triggerHaptic();
     setIsTransitioning(true);
+    // Capture the current view mode before switching
+    setPreviousView(viewMode);
+    
+    window.history.pushState({ view: 'SHOWCASE', animeId }, '', `?anime=${animeId}`);
+
     const anime = await fetchAnimeDetails(animeId);
     if (anime) {
       setAnimeList([anime]);
       setCurrentIndex(0);
       setViewMode('SHOWCASE');
       setIsDetailView(true);
-      setReturnToStudios(true);
       // Reset scroll
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
@@ -292,8 +347,12 @@ export default function App() {
           >
             SHOWCASE
           </button>
-          <button className="hover:text-accent-red transition-colors opacity-50 cursor-not-allowed">TOP RATED</button>
-          <button className="hover:text-accent-red transition-colors opacity-50 cursor-not-allowed">GENRES</button>
+          <button 
+            onClick={() => handleNavClick('EXPLORE')}
+            className={`hover:text-accent-red transition-colors ${viewMode === 'EXPLORE' ? 'text-accent-red' : ''}`}
+          >
+            EXPLORE
+          </button>
           <button 
              onClick={() => handleNavClick('STUDIOS')}
              className={`hover:text-accent-red transition-colors ${viewMode === 'STUDIOS' ? 'text-accent-red' : ''}`}
@@ -341,6 +400,9 @@ export default function App() {
       {/* Main Content Area */}
       <main className={`relative w-full transition-all duration-700 ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
         
+        {/* VIEW: EXPLORE */}
+        <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
+
         {/* VIEW: STUDIOS */}
         <StudiosView isVisible={viewMode === 'STUDIOS'} onAnimeSelect={handleAnimeSelect} />
 
@@ -506,7 +568,7 @@ export default function App() {
                     </div>
 
                     <div 
-                      className="font-sans text-off-black font-light leading-relaxed text-lg text-justify opacity-80"
+                      className="font-sans text-off-black font-light leading-relaxed text-lg text-justify opacity-80 allow-select"
                       dangerouslySetInnerHTML={{ __html: currentAnime.description }}
                     />
 

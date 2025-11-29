@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StudioData, fetchStudios } from '../services/anilistService';
 import { geminiService } from '../services/geminiService';
+import { triggerHaptic } from '../utils/haptics';
 
 interface StudiosViewProps {
   isVisible: boolean;
@@ -21,6 +22,23 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
   // FLIP Animation Refs
   const nameRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const detailNameRef = useRef<HTMLHeadingElement>(null);
+
+  // History Management
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state?.view === 'STUDIOS') {
+         if (state.studioId) {
+            const studio = studios.find(s => s.id === state.studioId);
+            if (studio) setSelectedStudio(studio);
+         } else {
+            setSelectedStudio(null);
+         }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [studios]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -63,9 +81,11 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
   }, [isVisible, selectedStudio]);
 
   const handleStudioClick = (studio: StudioData) => {
+    triggerHaptic();
     const startEl = nameRefs.current.get(studio.id);
     const startRect = startEl?.getBoundingClientRect();
 
+    window.history.pushState({ view: 'STUDIOS', studioId: studio.id }, '', `?view=studios&id=${studio.id}`);
     setSelectedStudio(studio);
     
     // Scroll to top immediately
@@ -77,7 +97,8 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
   };
 
   const handleBack = () => {
-    setSelectedStudio(null);
+    triggerHaptic();
+    window.history.back();
   };
 
   useEffect(() => {
@@ -156,7 +177,7 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
             {/* AI Generated Bio */}
             <div className="mt-8 max-w-2xl">
                <h3 className="font-condensed font-bold text-accent-red uppercase tracking-widest mb-2 text-sm">ABOUT</h3>
-               <p className="font-sans text-lg md:text-xl font-light leading-relaxed text-off-black min-h-[60px]">
+               <p className="font-sans text-lg md:text-xl font-light leading-relaxed text-off-black min-h-[60px] allow-select">
                  {isBioLoading ? (
                    <span className="animate-pulse bg-gray-300 text-transparent rounded">Loading description...</span>
                  ) : (
@@ -189,7 +210,7 @@ export const StudiosView: React.FC<StudiosViewProps> = ({ isVisible, onAnimeSele
             {selectedStudio.media.nodes.map((anime) => (
                <div 
                  key={anime.id} 
-                 onClick={() => onAnimeSelect && onAnimeSelect(anime.id)}
+                 onClick={() => { triggerHaptic(); onAnimeSelect && onAnimeSelect(anime.id); }}
                  className="border-2 border-off-black bg-white dark:bg-black group hover:shadow-[8px_8px_0px_0px_#D00000] transition-all duration-300 cursor-pointer"
                >
                   <div className="aspect-video overflow-hidden border-b-2 border-off-black relative bg-black">
