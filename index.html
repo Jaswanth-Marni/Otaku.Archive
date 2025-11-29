@@ -25,6 +25,7 @@
             animation: {
               'float': 'float 6s ease-in-out infinite',
               'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'subtle-tilt': 'subtleTilt 4s ease-in-out infinite',
             },
             keyframes: {
               float: {
@@ -34,6 +35,10 @@
               slideUp: {
                 '0%': { transform: 'translateY(100%)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              subtleTilt: {
+                '0%, 100%': { transform: 'rotate(-2deg)' },
+                '50%': { transform: 'rotate(2deg)' },
               }
             }
           },
@@ -54,6 +59,18 @@
       body {
         background-color: #E5E5E5;
         overflow-x: hidden;
+      }
+
+      /* Landing Page Title Hover Effect */
+      .landing-title {
+        -webkit-text-stroke: 2px #0F0F0F;
+        color: transparent;
+        transition: all 0.7s ease;
+      }
+      .landing-title:hover {
+        -webkit-text-stroke: 2px #D00000;
+        transform: scale(1.05);
+        transition: transform 0.3s ease-out, -webkit-text-stroke 0.3s ease-out !important;
       }
     </style>
   <script type="importmap">
