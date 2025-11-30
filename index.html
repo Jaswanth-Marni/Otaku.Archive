@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
     <title>OTAKU.ARCHIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,6 +65,9 @@
     </script>
     <style>
       :root {
+        /* This tells the browser your site knows how to handle 
+           light and dark modes, so the browser shouldn't force it. */
+        color-scheme: light;
         --color-base-gray: #E5E5E5;
         --color-off-black: #0F0F0F;
       }
