@@ -430,8 +430,6 @@ export default function App() {
 
           {/* VIEW: EXPLORE */}
           <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
-          {/* VIEW: EXPLORE */}
-          <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
 
           {/* VIEW: STUDIOS */}
           <StudiosView isVisible={viewMode === 'STUDIOS'} onAnimeSelect={handleAnimeSelect} />
