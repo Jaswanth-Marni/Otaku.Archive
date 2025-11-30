@@ -6,9 +6,11 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { fetchTrendingAnime, fetchAnimeDetails, AnimeData } from './services/anilistService';
 import { StudiosView } from './components/StudiosView';
 import { ExploreView } from './components/ExploreView';
+import { Footer } from './components/Footer';
+import { NotFoundView } from './components/NotFoundView';
 import { triggerHaptic } from './utils/haptics';
 
-type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE';
+type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'NOT_FOUND';
 
 export default function App() {
   const [animeList, setAnimeList] = useState<AnimeData[]>([]);
@@ -56,6 +58,8 @@ export default function App() {
           if (anime) {
             setAnimeList([anime]);
             setCurrentIndex(0);
+          } else {
+            setViewMode('NOT_FOUND');
           }
           setIsTransitioning(false);
         });
@@ -221,8 +225,6 @@ export default function App() {
     // Capture the current view mode before switching
     setPreviousView(viewMode);
     
-    window.history.pushState({ view: 'SHOWCASE', animeId }, '', `?anime=${animeId}`);
-
     const anime = await fetchAnimeDetails(animeId);
     if (anime) {
       setAnimeList([anime]);
@@ -231,7 +233,10 @@ export default function App() {
       setIsDetailView(true);
       // Reset scroll
       window.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      setViewMode('NOT_FOUND');
     }
+    // End transition
     setIsTransitioning(false);
   };
 
@@ -413,6 +418,18 @@ export default function App() {
         {/* Main Content Area */}
         <main className={`relative w-full transition-all duration-700 ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
           
+          {/* VIEW: NOT FOUND */}
+          {viewMode === 'NOT_FOUND' && (
+             <NotFoundView onBack={() => {
+                triggerHaptic();
+                setViewMode('SHOWCASE');
+                setAnimeList(trendingList);
+                window.history.pushState({ view: 'SHOWCASE' }, '', '/');
+             }} />
+          )}
+
+          {/* VIEW: EXPLORE */}
+          <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
           {/* VIEW: EXPLORE */}
           <ExploreView isVisible={viewMode === 'EXPLORE'} onAnimeSelect={handleAnimeSelect} />
 
@@ -684,6 +701,12 @@ export default function App() {
           )}
 
         </main>
+
+        <Footer onNotFound={() => {
+          triggerHaptic();
+          setViewMode('NOT_FOUND');
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }} />
       </div>
     </div>
   );
