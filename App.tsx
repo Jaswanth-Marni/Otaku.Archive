@@ -26,6 +26,7 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
   
   // Refs for FLIP animations
   const posterRef = useRef<HTMLDivElement>(null);
@@ -234,6 +235,9 @@ export default function App() {
     
     const anime = await fetchAnimeDetails(animeId);
     if (anime) {
+      // Push state so back button works correctly (returns to previous view)
+      window.history.pushState({ view: 'SHOWCASE', animeId }, '', `?anime=${animeId}`);
+      
       setAnimeList([anime]);
       setCurrentIndex(0);
       setViewMode('SHOWCASE');
@@ -344,14 +348,9 @@ export default function App() {
 
   return (
     <div id="app-wrapper" className="min-h-screen relative font-sans">
-      
-      {/* Main Content Wrapper */}
-      <div 
-        className="relative z-10 bg-base-gray text-off-black selection:bg-black selection:text-white transition-colors duration-700 shadow-2xl"
-      >
         
         {/* Navigation */}
-        <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
+        <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView || isFooterVisible ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
           <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
              <div 
                onClick={handleLogoClick}
@@ -421,7 +420,11 @@ export default function App() {
             Close Detail [ESC]
           </button>
         )}
-
+      
+      {/* Main Content Wrapper */}
+      <div 
+        className="relative z-10 bg-base-gray text-off-black selection:bg-black selection:text-white transition-colors duration-700 shadow-2xl"
+      >
         {/* Main Content Area */}
         <main className={`relative w-full ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
           
@@ -696,11 +699,11 @@ export default function App() {
                    {(currentIndex + 1).toString().padStart(2, '0')} / {animeList.length.toString().padStart(2, '0')}
                  </div>
                  <div className="flex gap-2">
-                   <button onClick={handlePrev} className="w-14 h-14 border-2 border-off-black dark:border-white flex items-center justify-center hover:bg-off-black hover:text-base-gray dark:hover:bg-white dark:hover:text-black transition-all active:scale-95 text-off-black dark:text-white">
-                     ←
+                   <button onClick={handlePrev} className="group w-14 h-14 border-2 border-off-black dark:border-white text-off-black dark:text-white flex items-center justify-center hover:bg-off-black hover:text-base-gray dark:hover:bg-white dark:hover:text-black transition-all active:scale-95">
+                     <img src="/arrow.png" alt="Previous" className="w-6 h-6 object-contain rotate-180 dark:invert group-hover:invert dark:group-hover:invert-0 transition-all" />
                    </button>
-                   <button onClick={handleNext} className="w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center hover:bg-accent-red dark:hover:bg-accent-red dark:hover:text-white transition-all active:scale-95 shadow-lg">
-                     →
+                   <button onClick={handleNext} className="group w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center hover:bg-accent-red dark:hover:bg-accent-red dark:hover:text-white transition-all active:scale-95 shadow-lg">
+                     <img src="/arrow.png" alt="Next" className="w-6 h-6 object-contain invert dark:invert-0 dark:group-hover:invert transition-all" />
                    </button>
                  </div>
               </div>
@@ -709,11 +712,14 @@ export default function App() {
 
         </main>
 
-        <Footer onNotFound={() => {
-          triggerHaptic();
-          setViewMode('NOT_FOUND');
-          window.scrollTo({ top: 0, behavior: 'instant' });
-        }} />
+        <Footer 
+          onVisibilityChange={setIsFooterVisible}
+          onNotFound={() => {
+            triggerHaptic();
+            setViewMode('NOT_FOUND');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }} 
+        />
       </div>
     </div>
   );
