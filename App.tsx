@@ -507,7 +507,7 @@ export default function App() {
                      relative shadow-2xl bg-black overflow-hidden
                      ${isDetailView 
                        ? 'w-full aspect-[2/3] rotate-0 pointer-events-auto max-w-md shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]' 
-                       : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto'
+                       : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]'
                      }
                    `}
                    style={{ 
@@ -708,11 +708,11 @@ export default function App() {
                    {(currentIndex + 1).toString().padStart(2, '0')} / {animeList.length.toString().padStart(2, '0')}
                  </div>
                  <div className="flex gap-2">
-                   <button onClick={handlePrev} className="group w-14 h-14 border-2 border-off-black dark:border-white text-off-black dark:text-white flex items-center justify-center hover:bg-off-black hover:text-base-gray dark:hover:bg-white dark:hover:text-black transition-all active:scale-95">
-                     <img src="/arrow.png" alt="Previous" className="w-6 h-6 object-contain rotate-180 dark:invert group-hover:invert dark:group-hover:invert-0 transition-all" />
+                   <button onClick={handlePrev} className="group w-14 h-14 border-2 border-off-black dark:border-white text-off-black dark:text-white flex items-center justify-center md:hover:bg-off-black md:hover:text-base-gray md:dark:hover:bg-white md:dark:hover:text-black transition-all active:scale-95 active:bg-off-black active:text-base-gray dark:active:bg-white dark:active:text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] md:hover:shadow-none md:hover:translate-x-[2px] md:hover:translate-y-[2px] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">
+                     <img src="/arrow.png" alt="Previous" className="w-6 h-6 object-contain rotate-180 dark:invert md:group-hover:invert group-active:invert md:dark:group-hover:invert-0 dark:group-active:invert-0 transition-all" />
                    </button>
-                   <button onClick={handleNext} className="group w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center hover:bg-accent-red dark:hover:bg-accent-red dark:hover:text-white transition-all active:scale-95 shadow-lg">
-                     <img src="/arrow.png" alt="Next" className="w-6 h-6 object-contain invert dark:invert-0 dark:group-hover:invert transition-all" />
+                   <button onClick={handleNext} className="group w-14 h-14 bg-off-black dark:bg-white text-base-gray dark:text-black flex items-center justify-center md:hover:bg-accent-red md:dark:hover:bg-accent-red md:dark:hover:text-white transition-all active:scale-95 active:bg-accent-red dark:active:bg-accent-red dark:active:text-white shadow-[4px_4px_0px_0px_#D00000] dark:shadow-[4px_4px_0px_0px_#D00000] md:hover:shadow-none md:hover:translate-x-[2px] md:hover:translate-y-[2px] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">
+                     <img src="/arrow.png" alt="Next" className="w-6 h-6 object-contain invert dark:invert-0 md:group-hover:invert-0 group-active:invert-0 md:dark:group-hover:invert-0 dark:group-active:invert-0 transition-all" />
                    </button>
                  </div>
               </div>
