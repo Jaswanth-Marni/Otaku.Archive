@@ -485,7 +485,7 @@ export default function App() {
                  relative z-20
                  ${isDetailView 
                     ? 'col-span-1 md:col-span-6 lg:col-span-5 border-b-2 md:border-b-0 md:border-r-2 border-off-black p-8 md:p-12 flex items-center justify-center bg-base-gray' 
-                    : 'w-full h-full flex flex-col items-center justify-center pb-20 md:pb-0 absolute inset-0 pointer-events-none'
+                    : 'w-full h-full flex flex-col items-center justify-center pb-12 md:pb-0 absolute inset-0 pointer-events-none'
                  }
               `}>
                  <div 
