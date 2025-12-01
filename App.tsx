@@ -507,7 +507,7 @@ export default function App() {
                      relative shadow-2xl bg-black overflow-hidden
                      ${isDetailView 
                        ? 'w-full aspect-[2/3] rotate-0 pointer-events-auto max-w-md shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]' 
-                       : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)]'
+                       : 'w-[min(70vw,50vh)] md:w-[26vw] aspect-[2/3] cursor-pointer group pointer-events-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]'
                      }
                    `}
                    style={{ 
