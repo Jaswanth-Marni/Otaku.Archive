@@ -8,6 +8,7 @@ import { StudiosView } from './components/StudiosView';
 import { ExploreView } from './components/ExploreView';
 import { Footer } from './components/Footer';
 import { NotFoundView } from './components/NotFoundView';
+import { PullToRefresh } from './components/PullToRefresh';
 import { triggerHaptic } from './utils/haptics';
 
 type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'NOT_FOUND';
@@ -251,6 +252,12 @@ export default function App() {
     setIsTransitioning(false);
   };
 
+  const handleRefresh = async () => {
+    // Simulate a delay for the refresh animation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    window.location.reload();
+  };
+
   // Auto-scroll Effect
   useEffect(() => {
     if (viewMode !== 'SHOWCASE' || isDetailView || animeList.length === 0) return;
@@ -349,6 +356,8 @@ export default function App() {
   return (
     <div id="app-wrapper" className="min-h-screen relative font-sans">
         
+        <PullToRefresh onRefresh={handleRefresh} />
+
         {/* Navigation */}
         <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView || isFooterVisible ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
           <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
