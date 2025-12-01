@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Button } from './components/Button';
 import { MenuButton } from './components/MenuButton';
 import { MobileMenu } from './components/MobileMenu';
@@ -124,6 +124,13 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Force scroll to top when switching views or toggling detail
+  useLayoutEffect(() => {
+    if (viewMode === 'SHOWCASE') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [isDetailView, viewMode]);
 
   // Parallax Logic - Only active in Showcase mode
   useEffect(() => {
@@ -252,7 +259,7 @@ export default function App() {
   }, [viewMode, isDetailView, animeList.length]);
 
   // 3. FLIP ANIMATION EFFECT
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!posterRect || !posterRef.current || viewMode !== 'SHOWCASE') return;
 
     // LAST (Capture new positions after render)
@@ -416,7 +423,7 @@ export default function App() {
         )}
 
         {/* Main Content Area */}
-        <main className={`relative w-full transition-all duration-700 ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
+        <main className={`relative w-full ${isLandingPage ? 'h-screen flex flex-col justify-center' : 'min-h-screen'} ${isDetailView ? 'pt-12 pb-12' : ''}`}>
           
           {/* VIEW: NOT FOUND */}
           {viewMode === 'NOT_FOUND' && (
@@ -437,7 +444,7 @@ export default function App() {
           {/* VIEW: SHOWCASE (Landing & Detail) */}
           {viewMode === 'SHOWCASE' && (
             <div className={`
-              relative mx-auto transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]
+              relative mx-auto transition-colors duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]
               ${isDetailView 
                 ? 'w-full max-w-[95%] md:max-w-[90%] lg:max-w-7xl grid grid-cols-1 md:grid-cols-12 border-2 border-off-black bg-white dark:bg-black shadow-2xl mt-12 mb-12' 
                 : 'w-full max-w-full h-full flex items-center justify-center'
@@ -475,7 +482,7 @@ export default function App() {
               {/* === LEFT COLUMN: POSTER === */}
               {/* Landing: Centered | Detail: Left Column (Col 1-5) */}
               <div className={`
-                 relative z-20 transition-all duration-700
+                 relative z-20
                  ${isDetailView 
                     ? 'col-span-1 md:col-span-6 lg:col-span-5 border-b-2 md:border-b-0 md:border-r-2 border-off-black p-8 md:p-12 flex items-center justify-center bg-base-gray' 
                     : 'w-full h-full flex flex-col items-center justify-center pb-20 md:pb-0 absolute inset-0 pointer-events-none'
@@ -540,7 +547,7 @@ export default function App() {
               {/* === RIGHT COLUMN: CONTENT === */}
               {/* Landing: Full Screen Background | Detail: Right Column (Col 6-12) */}
               <div className={`
-                 transition-all duration-700
+                 
                  ${isDetailView 
                    ? 'col-span-1 md:col-span-6 lg:col-span-7 flex flex-col' 
                    : 'absolute inset-0 z-0 flex items-center justify-center pointer-events-none'
@@ -549,9 +556,8 @@ export default function App() {
                 
                 {/* --- TITLE SECTION --- */}
                 <div 
-                  ref={!isMobile ? titleRef : undefined}
                   className={`
-                    transition-all duration-700 flex flex-col justify-center
+                    flex flex-col justify-center
                     ${isDetailView 
                       ? 'p-8 md:p-12 border-b-2 border-off-black bg-white dark:bg-black min-h-[300px]' 
                       : 'w-full h-full items-center text-center'
@@ -571,18 +577,21 @@ export default function App() {
                    </div>
 
                    {/* Main Title */}
-                   <div className={`${isDetailView ? 'relative' : 'px-4 max-w-[90vw]'}`}>
+                   <div 
+                     ref={!isMobile ? titleRef : undefined}
+                     className={`${isDetailView ? 'relative w-fit' : 'px-4 max-w-[90vw] w-fit mx-auto'}`}
+                   >
                      {/* Mobile Detail: Solid Font */}
                      <h1 
                        ref={(isMobile && isDetailView) ? titleRef : undefined}
-                       className={`md:hidden font-display tracking-tighter uppercase text-off-black break-words transition-all duration-700 ${titleClass} ${!isDetailView ? 'hidden' : 'block'}`}
+                       className={`md:hidden font-display tracking-tighter uppercase text-off-black break-words transition-colors duration-700 ${titleClass} ${!isDetailView ? 'hidden' : 'block'}`}
                      >
                        {displayTitle}
                      </h1>
 
                      {/* Desktop / Showcase: Outline Font (Anton) */}
                      <h1 
-                       className={`font-display tracking-tighter uppercase break-words transition-all duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title animate-slide-up'}`}
+                       className={`font-display tracking-tighter uppercase break-words transition-colors duration-700 ${titleClass} ${isDetailView ? 'hidden md:block text-off-black' : 'hidden md:block landing-title animate-slide-up'}`}
                        style={{ animationDelay: '0.4s' }}
                      >
                        {displayTitle}
