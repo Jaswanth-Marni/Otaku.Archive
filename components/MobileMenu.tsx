@@ -16,7 +16,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onNavCl
 
   return (
     <div 
-      className={`fixed inset-0 z-40 bg-off-black text-base-gray flex flex-col items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      className={`fixed inset-0 z-[70] bg-off-black text-base-gray flex flex-col items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
     >
       <nav className="flex flex-col gap-8 items-center font-condensed font-bold text-3xl tracking-widest">
         <button 

@@ -120,7 +120,7 @@ export default function App() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
-      setIsScrolled(scrollPosition > 50);
+      setIsScrolled(scrollPosition > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -359,18 +359,34 @@ export default function App() {
         <PullToRefresh onRefresh={handleRefresh} />
 
         {/* Navigation */}
-        <nav className={`fixed top-0 w-full z-[60] flex items-center justify-between px-6 py-6 md:px-12 pointer-events-none transition-all duration-500 ${isDetailView || isFooterVisible ? 'opacity-0 -translate-y-full' : 'opacity-100'} ${isMenuOpen ? '' : (isScrolled ? 'bg-[#1a1a1a] dark:bg-white shadow-lg' : (theme === 'dark' ? '' : 'mix-blend-darken'))}`}>
+        <nav 
+          className={`
+            fixed transition-all duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] flex items-center justify-between left-1/2 -translate-x-1/2
+            ${isMenuOpen ? 'z-[80]' : 'z-[60]'}
+            ${isDetailView || (isFooterVisible && !isMenuOpen) ? 'opacity-0 -translate-y-[200%]' : ''}
+            ${!isScrolled 
+              ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen ? 'mix-blend-darken' : ''}`
+              : `
+                 top-4
+                 w-[92%] md:w-[95%] md:max-w-7xl
+                 px-4 md:px-6 py-2
+                 ${isMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
+                 opacity-100 translate-y-0 pointer-events-auto
+                `
+            }
+          `}
+        >
           <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
              <div 
                onClick={handleLogoClick}
-               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isScrolled || isMenuOpen ? 'text-white dark:text-black' : ''}`}
+               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : '')}`}
                title="Reload"
              >
                OTAKU<span className="text-accent-red">.ARCHIVE</span>
              </div>
           </div>
 
-          <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-white dark:text-black' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
+          <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-off-black dark:text-white' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
             <button 
               onClick={() => handleNavClick('SHOWCASE')} 
               className={`hover:text-accent-red transition-colors ${viewMode === 'SHOWCASE' ? 'text-accent-red' : ''}`}
@@ -393,14 +409,14 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-white text-white hover:bg-white hover:text-black dark:border-black dark:text-black dark:hover:bg-black dark:hover:text-white' : ''}`}>LOGIN</Button>
+            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-off-black text-off-black hover:bg-off-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black' : ''}`}>LOGIN</Button>
             <MenuButton 
               isOpen={isMenuOpen} 
               onClick={() => {
                 triggerHaptic();
                 setIsMenuOpen(!isMenuOpen);
               }} 
-              className={isMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-white dark:text-black' : 'text-off-black dark:text-white')}
+              className={isMenuOpen ? 'text-base-gray' : 'text-off-black dark:text-white'}
             />
           </div>
         </nav>

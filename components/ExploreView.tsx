@@ -141,7 +141,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ isVisible, onAnimeSele
     <div className="w-full min-h-screen pt-24 pb-20 bg-base-gray text-off-black animate-slide-up">
       
       {/* Search Component */}
-      <div className="sticky top-24 z-30 w-full flex flex-col items-center px-4 mb-12 pointer-events-none">
+      <div className="relative z-30 w-full flex flex-col items-center px-4 mb-12 pointer-events-none">
         <div className="relative w-full max-w-2xl pointer-events-auto group">
           <input
             type="text"

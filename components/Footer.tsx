@@ -254,12 +254,13 @@ export const Footer: React.FC<FooterProps> = ({ onNotFound, onVisibilityChange }
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
           setIsVisible(true);
         }
-        onVisibilityChange?.(entry.isIntersecting);
+        // Only report visibility to parent (to hide navbar) when footer is almost fully visible (90%+)
+        onVisibilityChange?.(entry.isIntersecting && entry.intersectionRatio >= 0.9);
       },
-      { threshold: 0.1 }
+      { threshold: [0.1, 0.9] }
     );
 
     if (footerRef.current) {
