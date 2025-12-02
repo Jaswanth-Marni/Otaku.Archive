@@ -2,16 +2,21 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Button } from './components/Button';
 import { MenuButton } from './components/MenuButton';
 import { MobileMenu } from './components/MobileMenu';
+import { DesktopMenu } from './components/DesktopMenu';
+import { DesktopMenuTrigger } from './components/DesktopMenuTrigger';
 import { ThemeToggle } from './components/ThemeToggle';
 import { fetchTrendingAnime, fetchAnimeDetails, AnimeData } from './services/anilistService';
 import { StudiosView } from './components/StudiosView';
 import { ExploreView } from './components/ExploreView';
+import { AboutView } from './components/AboutView';
+import { ProjectsView } from './components/ProjectsView';
+import { ContactView } from './components/ContactView';
 import { Footer } from './components/Footer';
 import { NotFoundView } from './components/NotFoundView';
 import { PullToRefresh } from './components/PullToRefresh';
 import { triggerHaptic } from './utils/haptics';
 
-type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'NOT_FOUND';
+type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'ABOUT' | 'PROJECTS' | 'CONTACT' | 'NOT_FOUND';
 
 export default function App() {
   const [animeList, setAnimeList] = useState<AnimeData[]>([]);
@@ -25,6 +30,7 @@ export default function App() {
   const [previousView, setPreviousView] = useState<ViewMode | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
@@ -115,6 +121,18 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Lock Scroll when Menu is Open
+  useEffect(() => {
+    if (isMenuOpen || isDesktopMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen, isDesktopMenuOpen]);
 
   // Scroll Listener
   useEffect(() => {
@@ -362,15 +380,15 @@ export default function App() {
         <nav 
           className={`
             fixed transition-all duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] flex items-center justify-between left-1/2 -translate-x-1/2
-            ${isMenuOpen ? 'z-[80]' : 'z-[60]'}
-            ${isDetailView || (isFooterVisible && !isMenuOpen) ? 'opacity-0 -translate-y-[200%]' : ''}
+            ${isMenuOpen || isDesktopMenuOpen ? 'z-[80]' : 'z-[60]'}
+            ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? 'opacity-0 -translate-y-[200%]' : ''}
             ${!isScrolled 
-              ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen ? 'mix-blend-darken' : ''}`
+              ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen && !isDesktopMenuOpen ? 'mix-blend-darken' : ''}`
               : `
                  top-4
                  w-[92%] md:w-[95%] md:max-w-7xl
                  px-4 md:px-6 py-2
-                 ${isMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
+                 ${isMenuOpen || isDesktopMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
                  opacity-100 translate-y-0 pointer-events-auto
                 `
             }
@@ -379,51 +397,52 @@ export default function App() {
           <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
              <div 
                onClick={handleLogoClick}
-               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : '')}`}
+               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isMenuOpen || isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : '')}`}
                title="Reload"
              >
                OTAKU<span className="text-accent-red">.ARCHIVE</span>
              </div>
           </div>
 
-          <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm pointer-events-auto ${isScrolled ? 'text-off-black dark:text-white' : 'dark:text-white'} animate-fade-in`} style={{ animationDelay: '0.4s' }}>
-            <button 
-              onClick={() => handleNavClick('SHOWCASE')} 
-              className={`hover:text-accent-red transition-colors ${viewMode === 'SHOWCASE' ? 'text-accent-red' : ''}`}
-            >
-              SHOWCASE
-            </button>
-            <button 
-              onClick={() => handleNavClick('EXPLORE')}
-              className={`hover:text-accent-red transition-colors ${viewMode === 'EXPLORE' ? 'text-accent-red' : ''}`}
-            >
-              EXPLORE
-            </button>
-            <button 
-               onClick={() => handleNavClick('STUDIOS')}
-               className={`hover:text-accent-red transition-colors ${viewMode === 'STUDIOS' ? 'text-accent-red' : ''}`}
-            >
-               STUDIOS
-            </button>
-            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm ${isScrolled || isDesktopMenuOpen ? 'text-off-black dark:text-white' : 'dark:text-white'}`}>
+              <DesktopMenuTrigger 
+                isOpen={isDesktopMenuOpen} 
+                onClick={() => {
+                  triggerHaptic();
+                  setIsDesktopMenuOpen(!isDesktopMenuOpen);
+                }}
+                className={isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : 'text-off-black dark:text-white')}
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled ? 'border-off-black text-off-black hover:bg-off-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black' : ''}`}>LOGIN</Button>
-            <MenuButton 
-              isOpen={isMenuOpen} 
-              onClick={() => {
-                triggerHaptic();
-                setIsMenuOpen(!isMenuOpen);
-              }} 
-              className={isMenuOpen ? 'text-base-gray' : 'text-off-black dark:text-white'}
-            />
+            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled && !isDesktopMenuOpen ? 'border-off-black text-off-black hover:bg-off-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black' : (isDesktopMenuOpen ? '!border-base-gray !text-base-gray !hover:bg-base-gray !hover:text-off-black' : '')}`}>LOGIN</Button>
+            <div className="md:hidden">
+              <MenuButton 
+                isOpen={isMenuOpen} 
+                onClick={() => {
+                  triggerHaptic();
+                  setIsMenuOpen(!isMenuOpen);
+                }} 
+                className={isMenuOpen ? 'text-base-gray' : 'text-off-black dark:text-white'}
+              />
+            </div>
           </div>
         </nav>
 
         <MobileMenu 
           isOpen={isMenuOpen} 
           onClose={() => setIsMenuOpen(false)} 
+          onNavClick={handleNavClick} 
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
+
+        <DesktopMenu 
+          isOpen={isDesktopMenuOpen} 
+          onClose={() => setIsDesktopMenuOpen(false)} 
           onNavClick={handleNavClick} 
           theme={theme}
           toggleTheme={toggleTheme}
@@ -468,6 +487,15 @@ export default function App() {
 
           {/* VIEW: STUDIOS */}
           <StudiosView isVisible={viewMode === 'STUDIOS'} onAnimeSelect={handleAnimeSelect} />
+
+          {/* VIEW: ABOUT */}
+          {viewMode === 'ABOUT' && <AboutView />}
+
+          {/* VIEW: PROJECTS */}
+          {viewMode === 'PROJECTS' && <ProjectsView />}
+
+          {/* VIEW: CONTACT */}
+          {viewMode === 'CONTACT' && <ContactView />}
 
           {/* VIEW: SHOWCASE (Landing & Detail) */}
           {viewMode === 'SHOWCASE' && (
