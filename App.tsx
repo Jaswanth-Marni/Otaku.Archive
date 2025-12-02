@@ -461,7 +461,7 @@ export default function App() {
         {isDetailView && viewMode === 'SHOWCASE' && (
           <button 
             onClick={handleCloseDetail}
-            className="fixed top-6 right-6 z-[60] text-off-black dark:text-black font-condensed font-bold uppercase tracking-widest hover:text-accent-red transition-colors animate-slide-up bg-white px-4 py-2 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+            className="absolute top-6 right-6 z-[60] text-off-black dark:text-black font-condensed font-bold uppercase tracking-widest hover:text-accent-red transition-colors animate-slide-up bg-white px-4 py-2 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
           >
             Close Detail [ESC]
           </button>
