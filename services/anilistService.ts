@@ -16,6 +16,11 @@ export interface AnimeData {
   studios: {
     nodes: { name: string }[];
   };
+  trailer?: {
+    id: string;
+    site: string;
+    thumbnail: string;
+  };
 }
 
 export interface StudioData {
@@ -61,6 +66,11 @@ query ($page: Int, $perPage: Int) {
           name
         }
       }
+      trailer {
+        id
+        site
+        thumbnail
+      }
     }
   }
 }
@@ -87,6 +97,11 @@ query ($page: Int, $perPage: Int) {
         nodes {
           name
         }
+      }
+      trailer {
+        id
+        site
+        thumbnail
       }
     }
   }
@@ -115,6 +130,11 @@ query ($page: Int, $perPage: Int) {
           name
         }
       }
+      trailer {
+        id
+        site
+        thumbnail
+      }
     }
   }
 }
@@ -141,6 +161,11 @@ query ($search: String, $page: Int, $perPage: Int) {
         nodes {
           name
         }
+      }
+      trailer {
+        id
+        site
+        thumbnail
       }
     }
   }
@@ -182,6 +207,11 @@ query ($genre: String, $page: Int, $perPage: Int) {
         nodes {
           name
         }
+      }
+      trailer {
+        id
+        site
+        thumbnail
       }
     }
   }
@@ -271,6 +301,11 @@ query ($id: Int) {
       nodes {
         name
       }
+    }
+    trailer {
+      id
+      site
+      thumbnail
     }
   }
 }

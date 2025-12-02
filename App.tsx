@@ -14,6 +14,7 @@ import { ContactView } from './components/ContactView';
 import { Footer } from './components/Footer';
 import { NotFoundView } from './components/NotFoundView';
 import { PullToRefresh } from './components/PullToRefresh';
+import { TrailerPlayer } from './components/TrailerPlayer';
 import { triggerHaptic } from './utils/haptics';
 
 type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'ABOUT' | 'PROJECTS' | 'CONTACT' | 'NOT_FOUND';
@@ -34,6 +35,7 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
   
   // Refs for FLIP animations
   const posterRef = useRef<HTMLDivElement>(null);
@@ -381,7 +383,7 @@ export default function App() {
           className={`
             fixed transition-all duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] flex items-center justify-between left-1/2 -translate-x-1/2
             ${isMenuOpen || isDesktopMenuOpen ? 'z-[80]' : 'z-[60]'}
-            ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? 'opacity-0 -translate-y-[200%]' : ''}
+            ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? 'opacity-0 -translate-y-[200%] pointer-events-none' : ''}
             ${!isScrolled 
               ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen && !isDesktopMenuOpen ? 'mix-blend-darken' : ''}`
               : `
@@ -389,7 +391,7 @@ export default function App() {
                  w-[92%] md:w-[95%] md:max-w-7xl
                  px-4 md:px-6 py-2
                  ${isMenuOpen || isDesktopMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
-                 opacity-100 translate-y-0 pointer-events-auto
+                 ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? '' : 'opacity-100 translate-y-0 pointer-events-auto'}
                 `
             }
           `}
@@ -689,6 +691,40 @@ export default function App() {
                           </span>
                         ))}
                       </div>
+
+                      {/* TRAILER SECTION */}
+                      {currentAnime.trailer?.site === 'youtube' && currentAnime.trailer?.id && (
+                        <div className="mt-12 pt-12 border-t border-gray-300 dark:border-gray-700">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-8 h-8 rounded-full border border-black dark:border-white flex items-center justify-center">
+                                   <div className="w-2 h-2 bg-accent-red rounded-full animate-pulse"></div>
+                                </div>
+                                <h3 className="font-condensed font-bold text-xl uppercase tracking-widest text-off-black">Trailer</h3>
+                            </div>
+                            
+                            <div 
+                                onClick={() => {
+                                  triggerHaptic();
+                                  setShowTrailer(true);
+                                }}
+                                className="relative w-full aspect-video cursor-pointer group overflow-hidden border-2 border-off-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+                            >
+                                <img 
+                                    src={currentAnime.trailer.thumbnail || `https://img.youtube.com/vi/${currentAnime.trailer.id}/maxresdefault.jpg`} 
+                                    alt="Trailer Thumbnail" 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${currentAnime.trailer.id}/hqdefault.jpg`;
+                                    }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
+                                    <div className="group-hover:scale-110 transition-transform">
+                                        <svg className="w-20 h-20 text-accent-red drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
@@ -774,6 +810,14 @@ export default function App() {
           }} 
         />
       </div>
+
+      {/* Trailer Player Overlay */}
+      {showTrailer && currentAnime.trailer?.id && (
+        <TrailerPlayer 
+          videoId={currentAnime.trailer.id} 
+          onClose={() => setShowTrailer(false)} 
+        />
+      )}
     </div>
   );
 }
