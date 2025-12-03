@@ -62,7 +62,13 @@ export default function App() {
 
       // Handle View Mode
       if (state.view) {
-        setViewMode(state.view);
+        // Security check: Prevent accessing Dashboard via back button if logged out
+        if (state.view === 'DASHBOARD' && !localStorage.getItem('token')) {
+           setViewMode('SHOWCASE');
+           window.history.replaceState({ view: 'SHOWCASE' }, '', '/');
+        } else {
+           setViewMode(state.view);
+        }
       }
 
       // Handle Detail View
@@ -250,6 +256,7 @@ export default function App() {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setViewMode('SHOWCASE');
+    window.history.replaceState({ view: 'SHOWCASE' }, '', '/');
     window.location.reload();
   };
 
