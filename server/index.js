@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoute from './routes/auth.js';
 import userRoute from './routes/user.js';
+import chatRoute from './routes/chat.js';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(cors());
 // Route Middlewares
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
+app.use('/api/chat', chatRoute);
 
 // Connect to DB
 mongoose.connect(process.env.MONGO_URI)
