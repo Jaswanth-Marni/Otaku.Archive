@@ -127,9 +127,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ isVisible, onAnimeSele
               ← Back to Explore
             </button>
             <h2 className="font-display text-4xl md:text-6xl uppercase mb-8">{title}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
                {data.map(anime => (
-                 <AnimeCard key={anime.id} anime={anime} onClick={() => onAnimeSelect(anime.id)} />
+                 <AnimeCard key={anime.id} anime={anime} onClick={() => onAnimeSelect(anime.id)} className="w-full" />
                ))}
             </div>
          </div>
@@ -220,9 +220,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ isVisible, onAnimeSele
            <h2 className="font-display text-4xl uppercase mb-6">
              {isSearching ? 'Searching...' : `Results for "${searchQuery}"`}
            </h2>
-           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
              {searchResults.map(anime => (
-               <AnimeCard key={anime.id} anime={anime} onClick={() => onAnimeSelect(anime.id)} />
+               <AnimeCard key={anime.id} anime={anime} onClick={() => onAnimeSelect(anime.id)} className="w-full" />
              ))}
              {searchResults.length === 0 && !isSearching && (
                <div className="col-span-full text-center font-mono text-gray-500">NO RESULTS FOUND</div>
@@ -331,10 +331,10 @@ const HorizontalScroll: React.FC<{ children: React.ReactNode }> = ({ children })
   </div>
 );
 
-const AnimeCard: React.FC<{ anime: AnimeData; onClick: () => void; style?: React.CSSProperties }> = ({ anime, onClick, style }) => (
+const AnimeCard: React.FC<{ anime: AnimeData; onClick: () => void; style?: React.CSSProperties; className?: string }> = ({ anime, onClick, style, className }) => (
   <div 
     onClick={onClick}
-    className="group relative w-[160px] md:w-[220px] flex-shrink-0 cursor-pointer animate-slide-in-right opacity-0"
+    className={`group relative flex-shrink-0 cursor-pointer animate-slide-in-right opacity-0 ${className || 'w-[160px] md:w-[220px]'}`}
     style={style}
   >
     <div className="w-full aspect-[2/3] overflow-hidden border-2 border-off-black bg-black relative mb-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] group-hover:shadow-[8px_8px_0px_0px_#D00000] group-hover:-translate-y-1 transition-all duration-300">

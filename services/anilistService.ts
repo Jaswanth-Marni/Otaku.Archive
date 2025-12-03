@@ -218,6 +218,38 @@ query ($genre: String, $page: Int, $perPage: Int) {
 }
 `;
 
+const RECOMMENDATION_QUERY = `
+query ($genres: [String], $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(genre_in: $genres, sort: POPULARITY_DESC, type: ANIME) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+      trailer {
+        id
+        site
+        thumbnail
+      }
+    }
+  }
+}
+`;
+
 const STUDIO_QUERY = `
 query {
   Page(page: 1, perPage: 20) {
@@ -310,6 +342,56 @@ query ($id: Int) {
   }
 }
 `;
+
+const IDS_QUERY = `
+query ($ids: [Int], $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(id_in: $ids, type: ANIME) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      description
+      coverImage {
+        extraLarge
+      }
+      bannerImage
+      genres
+      averageScore
+      studios(isMain: true) {
+        nodes {
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
+export const fetchAnimeByIds = async (ids: number[]): Promise<AnimeData[]> => {
+  if (ids.length === 0) return [];
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: IDS_QUERY,
+        variables: { ids, page: 1, perPage: 50 },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
 
 export const fetchAnimeDetails = async (id: number): Promise<AnimeData | null> => {
   try {
@@ -463,6 +545,28 @@ export const fetchAnimeByGenre = async (genre: string, page = 1, perPage = 10): 
       body: JSON.stringify({
         query: GENRE_SEARCH_QUERY,
         variables: { genre, page, perPage },
+      }),
+    });
+
+    const data = await response.json();
+    return data.data?.Page?.media || [];
+  } catch (error) {
+    console.error("Anilist API Error:", error);
+    return [];
+  }
+};
+
+export const fetchRecommendations = async (genres: string[], page = 1, perPage = 20): Promise<AnimeData[]> => {
+  try {
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        query: RECOMMENDATION_QUERY,
+        variables: { genres, page, perPage },
       }),
     });
 

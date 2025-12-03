@@ -11,15 +11,20 @@ import { ExploreView } from './components/ExploreView';
 import { AboutView } from './components/AboutView';
 import { ProjectsView } from './components/ProjectsView';
 import { ContactView } from './components/ContactView';
+import { LoginView } from './components/LoginView';
+import { DashboardView } from './components/DashboardView';
+import { SettingsView } from './components/SettingsView';
+import { AuthenticatedNavbar } from './components/AuthenticatedNavbar';
 import { Footer } from './components/Footer';
 import { NotFoundView } from './components/NotFoundView';
 import { PullToRefresh } from './components/PullToRefresh';
 import { TrailerPlayer } from './components/TrailerPlayer';
+import { AnimeDetailControls } from './components/AnimeDetailControls';
 import { triggerHaptic } from './utils/haptics';
 
-type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'ABOUT' | 'PROJECTS' | 'CONTACT' | 'NOT_FOUND';
-
+type ViewMode = 'SHOWCASE' | 'STUDIOS' | 'EXPLORE' | 'ABOUT' | 'PROJECTS' | 'CONTACT' | 'NOT_FOUND' | 'LOGIN' | 'DASHBOARD' | 'SETTINGS';
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [animeList, setAnimeList] = useState<AnimeData[]>([]);
   const [trendingList, setTrendingList] = useState<AnimeData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -94,8 +99,10 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     
-    // Set initial state
-    window.history.replaceState({ view: 'SHOWCASE' }, '', window.location.pathname);
+    // Set initial state only if not already set (e.g. by Auth check)
+    if (!window.history.state) {
+      window.history.replaceState({ view: 'SHOWCASE' }, '', window.location.pathname);
+    }
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [trendingList]);
@@ -110,8 +117,22 @@ export default function App() {
     };
     loadAnime();
 
+    // Check Auth
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+      setViewMode('DASHBOARD');
+      window.history.replaceState({ view: 'DASHBOARD' }, '', '?view=dashboard');
+    }
+
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
+
+    // Disable browser scroll restoration to prevent jumping to footer on back
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -149,7 +170,7 @@ export default function App() {
 
   // Force scroll to top when switching views or toggling detail
   useLayoutEffect(() => {
-    if (viewMode === 'SHOWCASE') {
+    if (viewMode === 'SHOWCASE' || viewMode === 'DASHBOARD' || viewMode === 'SETTINGS') {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, [isDetailView, viewMode]);
@@ -222,6 +243,14 @@ export default function App() {
     setTimeout(() => {
       window.location.reload();
     }, 600);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setViewMode('SHOWCASE');
+    window.location.reload();
   };
 
   const handleNavClick = (mode: ViewMode) => {
@@ -379,60 +408,76 @@ export default function App() {
         <PullToRefresh onRefresh={handleRefresh} />
 
         {/* Navigation */}
-        <nav 
-          className={`
-            fixed transition-all duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] flex items-center justify-between left-1/2 -translate-x-1/2
-            ${isMenuOpen || isDesktopMenuOpen ? 'z-[80]' : 'z-[60]'}
-            ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? 'opacity-0 -translate-y-[200%] pointer-events-none' : ''}
-            ${!isScrolled 
-              ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen && !isDesktopMenuOpen ? 'mix-blend-darken' : ''}`
-              : `
-                 top-4
-                 w-[92%] md:w-[95%] md:max-w-7xl
-                 px-4 md:px-6 py-2
-                 ${isMenuOpen || isDesktopMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
-                 ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? '' : 'opacity-100 translate-y-0 pointer-events-auto'}
-                `
-            }
-          `}
-        >
-          <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-             <div 
-               onClick={handleLogoClick}
-               className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isMenuOpen || isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : '')}`}
-               title="Reload"
-             >
-               OTAKU<span className="text-accent-red">.ARCHIVE</span>
-             </div>
-          </div>
-
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm ${isScrolled || isDesktopMenuOpen ? 'text-off-black dark:text-white' : 'dark:text-white'}`}>
-              <DesktopMenuTrigger 
-                isOpen={isDesktopMenuOpen} 
-                onClick={() => {
-                  triggerHaptic();
-                  setIsDesktopMenuOpen(!isDesktopMenuOpen);
-                }}
-                className={isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : 'text-off-black dark:text-white')}
-              />
+        {isAuthenticated ? (
+          <AuthenticatedNavbar 
+            onNavClick={handleNavClick} 
+            currentView={viewMode} 
+            onLogout={handleLogout} 
+            isScrolled={isScrolled}
+            isDetailView={isDetailView}
+            isMenuOpen={isMenuOpen}
+            onMenuClick={() => {
+              triggerHaptic();
+              setIsMenuOpen(!isMenuOpen);
+            }}
+            isFooterVisible={isFooterVisible}
+          />
+        ) : (
+          <nav 
+            className={`
+              fixed transition-all duration-400 ease-[cubic-bezier(0.76,0,0.24,1)] flex items-center justify-between left-1/2 -translate-x-1/2
+              ${isMenuOpen || isDesktopMenuOpen ? 'z-[80]' : 'z-[60]'}
+              ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? 'opacity-0 -translate-y-[200%] pointer-events-none' : ''}
+              ${!isScrolled 
+                ? `top-0 w-full px-6 py-6 md:px-12 bg-transparent pointer-events-none ${theme === 'light' && !isMenuOpen && !isDesktopMenuOpen ? 'mix-blend-darken' : ''}`
+                : `
+                   top-4
+                   w-[92%] md:w-[95%] md:max-w-7xl
+                   px-4 md:px-6 py-2
+                   ${isMenuOpen || isDesktopMenuOpen ? 'bg-transparent border-transparent shadow-none' : 'bg-white dark:bg-black border-2 border-off-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]'}
+                   ${isDetailView || (isFooterVisible && !isMenuOpen && !isDesktopMenuOpen) ? '' : 'opacity-100 translate-y-0 pointer-events-auto'}
+                  `
+              }
+            `}
+          >
+            <div className="flex items-center gap-2 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+               <div 
+                 onClick={handleLogoClick}
+                 className={`font-display text-2xl tracking-tighter cursor-pointer hover:opacity-70 transition-opacity ${isMenuOpen || isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : '')}`}
+                 title="Reload"
+               >
+                 OTAKU<span className="text-accent-red">.ARCHIVE</span>
+               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Button variant="outline" className={`hidden md:block text-xs py-2 px-6 ${isScrolled && !isDesktopMenuOpen ? 'border-off-black text-off-black hover:bg-off-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black' : (isDesktopMenuOpen ? '!border-base-gray !text-base-gray !hover:bg-base-gray !hover:text-off-black' : '')}`}>LOGIN</Button>
-            <div className="md:hidden">
-              <MenuButton 
-                isOpen={isMenuOpen} 
-                onClick={() => {
-                  triggerHaptic();
-                  setIsMenuOpen(!isMenuOpen);
-                }} 
-                className={isMenuOpen ? 'text-base-gray' : 'text-off-black dark:text-white'}
-              />
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className={`hidden md:flex gap-8 font-condensed font-bold tracking-widest text-sm ${isScrolled || isDesktopMenuOpen ? 'text-off-black dark:text-white' : 'dark:text-white'}`}>
+                <DesktopMenuTrigger 
+                  isOpen={isDesktopMenuOpen} 
+                  onClick={() => {
+                    triggerHaptic();
+                    setIsDesktopMenuOpen(!isDesktopMenuOpen);
+                  }}
+                  className={isDesktopMenuOpen ? 'text-base-gray' : (isScrolled ? 'text-off-black dark:text-white' : 'text-off-black dark:text-white')}
+                />
+              </div>
             </div>
-          </div>
-        </nav>
+
+            <div className="flex items-center gap-6 pointer-events-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <Button variant="outline" onClick={() => handleNavClick('LOGIN')} className={`hidden md:block text-xs py-2 px-6 ${isScrolled && !isDesktopMenuOpen ? 'border-off-black text-off-black hover:bg-off-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black' : (isDesktopMenuOpen ? '!border-base-gray !text-base-gray !hover:bg-base-gray !hover:text-off-black' : '')}`}>LOGIN</Button>
+              <div className="md:hidden">
+                <MenuButton 
+                  isOpen={isMenuOpen} 
+                  onClick={() => {
+                    triggerHaptic();
+                    setIsMenuOpen(!isMenuOpen);
+                  }} 
+                  className={isMenuOpen ? 'text-base-gray' : 'text-off-black dark:text-white'}
+                />
+              </div>
+            </div>
+          </nav>
+        )}
 
         <MobileMenu 
           isOpen={isMenuOpen} 
@@ -440,6 +485,8 @@ export default function App() {
           onNavClick={handleNavClick} 
           theme={theme}
           toggleTheme={toggleTheme}
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
         />
 
         <DesktopMenu 
@@ -498,6 +545,15 @@ export default function App() {
 
           {/* VIEW: CONTACT */}
           {viewMode === 'CONTACT' && <ContactView />}
+
+          {/* VIEW: LOGIN */}
+          {viewMode === 'LOGIN' && <LoginView />}
+
+          {/* VIEW: DASHBOARD */}
+          {viewMode === 'DASHBOARD' && <DashboardView onAnimeSelect={handleAnimeSelect} />}
+
+          {/* VIEW: SETTINGS */}
+          {viewMode === 'SETTINGS' && <SettingsView />}
 
           {/* VIEW: SHOWCASE (Landing & Detail) */}
           {viewMode === 'SHOWCASE' && (
@@ -660,6 +716,15 @@ export default function App() {
                 {/* --- SYNOPSIS SECTION (Detail Only) --- */}
                 {isDetailView && (
                   <div className="flex-1 p-8 md:p-12 bg-gray-50 dark:bg-[#1a1a1a] animate-slide-up" style={{ animationDelay: '0.4s' }}>
+                      
+                      {/* User Controls */}
+                      <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+                        <AnimeDetailControls 
+                          animeId={currentAnime.id} 
+                          onLoginRedirect={() => handleNavClick('LOGIN')} 
+                        />
+                      </div>
+
                       <div className="flex items-center gap-4 mb-6">
                         <div className="w-8 h-8 rounded-full border border-black dark:border-white flex items-center justify-center">
                            <div className="w-2 h-2 bg-accent-red rounded-full animate-pulse"></div>
