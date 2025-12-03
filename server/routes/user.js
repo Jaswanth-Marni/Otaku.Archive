@@ -1,6 +1,8 @@
-const router = require('express').Router();
-const User = require('../models/User');
-const verify = require('./verifyToken');
+import express from 'express';
+import User from '../models/User.js';
+import verify from './verifyToken.js';
+
+const router = express.Router();
 
 // Get Current User Data
 router.get('/me', verify, async (req, res) => {
@@ -67,4 +69,4 @@ router.post('/status/:animeId', verify, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

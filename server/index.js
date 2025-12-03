@@ -1,9 +1,9 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const authRoute = require('./routes/auth');
-const userRoute = require('./routes/user');
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoute from './routes/auth.js';
+import userRoute from './routes/user.js';
 
 dotenv.config();
 
@@ -28,4 +28,4 @@ if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server up and running on port ${PORT}`));
 }
 
-module.exports = app;
+export default app;
